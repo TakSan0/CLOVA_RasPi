@@ -122,7 +122,7 @@ LINE_CH_ACC_TOKEN=
 
 すると、以下の「CLOVAラズパイ設定」画面が開きます。
 
-![CLOVAラズパイ設定画面](https://i.gyazo.com/741e8442fe79debd5d8cdd0c61f5fc31.png CLOVAラズパイ設定画面)
+![CLOVAラズパイ設定画面](https://i.gyazo.com/741e8442fe79debd5d8cdd0c61f5fc31.png "CLOVAラズパイ設定画面")
 
 11以外の表示になる場合は、MicIndex:とSpeakerIndex:を変更し、[書き込み]ボタンを押して保存してください。"2. 設定ファイルのコピー"でコピーした.CLOVA_RasPi.cfgというファイル内に記録されます。
 11の場合はそのまま次のステップまで飛ばしてください。
