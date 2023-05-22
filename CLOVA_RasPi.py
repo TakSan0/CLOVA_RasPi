@@ -6,7 +6,7 @@ from CLOVA_config import global_config_sys
 from CLOVA_config import HttpReqSettingHandler
 from CLOVA_led import global_led_Ill
 from CLOVA_timer import TimerControl
-from CLOVA_key import KeyInput
+from CLOVA_switch import SwitchInput
 from CLOVA_volume import global_vol
 from CLOVA_charactor import global_charactor
 from CLOVA_conversation import Conversation
@@ -32,9 +32,9 @@ def main() :
     voice = VoiceControl()
 
     # キー準備
-    char_key = KeyInput(KeyInput.PIN_BACK_SW_BT, global_charactor.SelNextChar)
-    plus_key = KeyInput(KeyInput.PIN_BACK_SW_PLUS, global_vol.VolUpCallback)
-    minus_key = KeyInput(KeyInput.PIN_BACK_SW_MINUS, global_vol.VolDownCallback)
+    char_swich = SwitchInput(SwitchInput.PIN_BACK_SW_BT, global_charactor.SelNextChar)
+    plus_swich = SwitchInput(SwitchInput.PIN_BACK_SW_PLUS, global_vol.VolUpCallback)
+    minus_swich = SwitchInput(SwitchInput.PIN_BACK_SW_MINUS, global_vol.VolDownCallback)
 
     # タイマ準備
     tmr = TimerControl()

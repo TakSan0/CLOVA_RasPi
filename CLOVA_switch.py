@@ -5,7 +5,7 @@ import RPi.GPIO as GPIO
 # ==================================
 #           キー入力クラス
 # ==================================
-class KeyInput :
+class SwitchInput :
     # PIN_FRONT_SW = 26 
     # PIN_FRONT_SW = 4	# 起動に使うので、これはサポート対象外とする
     PIN_BACK_SW_MINUS = 2
@@ -19,7 +19,7 @@ class KeyInput :
 
     # コンストラクタ
     def __init__(self, pin, cb_func) :
-        print("Create <KeyInput> class / Pin={}".format(pin))
+        print("Create <SwitchInput> class / Pin={}".format(pin))
 
         self._pin = pin
         print("GPIO.setup({}, {}, {})".format(self._pin, GPIO.IN, GPIO.PUD_UP))
@@ -29,7 +29,7 @@ class KeyInput :
 
     # デストラクタ
     def __del__(self) :
-        print("Delete <KeyInput> class / Pin={}".format(self._pin))
+        print("Delete <SwitchInput> class / Pin={}".format(self._pin))
         self.Release()
 
     # 解放処理
