@@ -62,7 +62,16 @@ class CharactorSelection :
             # 空白なら無効化
             if (os.environ['VOICE_TEXT_API_KEY'] == "") :
                 ret = False
-
+        # |WEB版VOICEVOX API 用のキャラクタの場合
+        if (self.setting_json["charactors"][num]["Speaker"]["system"] == "VoiceVox" ) :
+            # 空白なら無効化
+            if (os.environ['WEB_VOICEVOX_API_KEY'] == "") :
+                ret = False
+        # AITalk WebAPI 用のキャラクタの場合
+        if (self.setting_json["charactors"][num]["Speaker"]["system"] == "AITalk") :
+            # 空白なら無効化
+            if (os.environ['AITALK_USER'] == "") or (os.environ['AITALK_PASSWORD'] == "") :
+                ret = False
 
         return ret
 

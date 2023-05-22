@@ -22,7 +22,7 @@ PIN_ILL_LED_ENA = 24
 class GPIOControl :
     # コンストラクタ
     def __init__(self) :
-        print("Create <KeyInput> class")
+        print("Create <GPIOControl> class")
 
         self.Initialize()
 

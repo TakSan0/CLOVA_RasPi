@@ -55,6 +55,21 @@ class KeysSetting :
         if val is not None :
             self.SetKeyToEnv(name, val)
 
+        name = 'WEB_VOICEVOX_API_KEY'
+        val = self.GetKeyFromFile(name)
+        if val is not None :
+            self.SetKeyToEnv(name, val)
+
+        name = 'AITALK_USER'
+        val = self.GetKeyFromFile(name)
+        if val is not None :
+            self.SetKeyToEnv(name, val)
+
+        name = 'AITALK_PASSWORD'
+        val = self.GetKeyFromFile(name)
+        if val is not None :
+            self.SetKeyToEnv(name, val)
+
         name = 'LINE_CH_ACC_TOKEN'
         val = self.GetKeyFromFile(name)
         if val is not None :

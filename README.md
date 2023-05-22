@@ -85,6 +85,9 @@ LINE CLOVAを愛用していたけれども、使えなくてがっかりして�
 GOOGLE_APPLICATION_CREDENTIALS=
 OPENAI_API_KEY=
 VOICE_TEXT_API_KEY=
+WEB_VOICEVOX_API_KEY=
+AITALK_USER=
+AITALK_PASSWORD=
 LINE_CH_ACC_TOKEN=
 ```
 
@@ -95,6 +98,9 @@ LINE_CH_ACC_TOKEN=
 |GOOGLE_APPLICATION_CREDENTIALS|Googleクラウドのサービスアカウントキーのファイルパス|音声認識(STT)/音声合成(TTS)に使用します。<必須>|
 |OPENAI_API_KEY|OpenAIのAPIキー|AIによる応答を作る為にChat-GPTのAPIにアクセスするのに使用します。 <必須>|
 |VOICE_TEXT_API_KEY|Web版VoiceTextのキー|音声合成(TTS) 設定しているとより多くのキャラクタ（声色）を選択できます。<オプション>|
+|WEB_VOICEVOX_API_KEY=|WEB版VOICEVOX APIのAPIキー|音声合成(TTS) 設定しているとより多くのキャラクタ（声色）を選択できます。<オプション>|
+|AITALK_USER=|AITalk Iのユーザー名|音声合成(TTS) 設定しているとより多くのキャラクタ（声色）を選択できます。<オプション>|
+|AITALK_PASSWORD=|AITalk Iのユーザー名|音声合成(TTS) 設定しているとより多くのキャラクタ（声色）を選択できます。<オプション>|
 |LINE_CH_ACC_TOKEN|LINEチャンネルアクセストークン|LINE MessagingAPIを使って LINEメッセージ送信をする時に使用します。<オプション>|
 
 <オプション>の項目を設定しない場合は空白にしてください。（その機能が動作しなくなります。）
@@ -249,10 +255,13 @@ LINE DEVELOPERサイトに、LINE Messaging APIを使うためのチャンネル
 
 - [MUTE] キーによる、プログラムの起動/終了。終了でプロンプトに戻る等。
 - 毎日や曜日指定の目覚まし機能
-- Web版VoiceTextに代わる音声合成サービス
 - AWS / Azure / Watson 等の 音声認識・音声合成に対応
 - 音楽（ラジオまたは配信、ローカルストレージ内)再生
+- 底面イルミネーションLEDをもっと派手に光らせたい。アニメーション等。
+- ボリューム変更時にLEDを光らせる。
+- ボリューム変更時連続して行うと、その分の発話がたまってしまう。
 - Bard対応 (APIが公開されたら)
+- Open AI Wisper にも対応したい。
 - OpenAI の会話は、過去数個分のやり取りを覚えるようにしたい
 - 外部機器のリモコン制御。(外にリモコン信号送信デバイスを設け、bluetooth経由でデータを送るようにしてみたい。M5-Echoとか使えるか？) 
 - 英会話機能

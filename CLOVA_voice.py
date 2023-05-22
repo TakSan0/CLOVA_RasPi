@@ -6,9 +6,11 @@ import numpy as np
 import audioop
 import speech_recognition as google_sr
 import requests
+import json
 from google.cloud import speech_v1p1beta1 as speech
 from google.cloud import texttospeech as tts
 from voicetext import VoiceText
+from pydub import AudioSegment
 from CLOVA_led import global_led_Ill
 from CLOVA_config import global_config_sys
 from CLOVA_charactor import global_charactor
@@ -51,6 +53,11 @@ class VoiceControl :
 
         # VoiceText のキーを取得
         self.voice_text_api_key = os.environ['VOICE_TEXT_API_KEY']
+        # Web版Voice Vox API キーを取得
+        self.web_voicevox_api_key = os.environ['WEB_VOICEVOX_API_KEY']
+        # ALTalk ユーザー名パスワードを取得
+        self.aitalk_user = os.environ['AITALK_USER']
+        self.aitalk_password = os.environ['AITALK_PASSWORD']
 
     # デストラクタ
     def __del__(self) :
@@ -182,6 +189,10 @@ class VoiceControl :
             file_name = self.TextToSpeechWavWithGoogleSpeech(text_to_speech)
         elif (system == "VoiceText") :
             file_name = self.TextToSpeechWavWithVoiceText(text_to_speech)
+        elif (system == "VoiceVox") :
+            file_name = self.TextToSpeechWavWithVoiceVox(text_to_speech)
+        elif (system == "AITalk") :
+            file_name = self.TextToSpeechWavWithAITalk(text_to_speech)
         else :
             print("Invalid Speech System for TextToSpeech : {}".format(system))
             file_name = ""
@@ -202,6 +213,25 @@ class VoiceControl :
         rate = wav_file.getframerate()
         channels = wav_file.getnchannels()
         width = wav_file.getsampwidth()
+
+        if (rate == 24000) :
+            # 一旦閉じる
+            wav_file.close()
+            os.rename(filename, "/tmp/temp.wav")
+
+            # サンプリングレート変換
+            rateconv_file = AudioSegment.from_wav("/tmp/temp.wav")
+            converted_wav = rateconv_file.set_frame_rate(44100)
+            converted_wav.export(filename, format='wav')
+            os.remove("/tmp/temp.wav")
+
+            # 再度フィアルを開いて waveファイルの情報を取得
+            wav_file = wave.open(filename, "rb")
+            rate = wav_file.getframerate()
+            channels = wav_file.getnchannels()
+            width = wav_file.getsampwidth()
+
+        print("PlayWav: rate={}, channels={}, width = {}".format(rate,channels, width))
 
         # 再生開始
         play_stream = pyaud.open(format=pyaud.get_format_from_width(width), channels=channels, rate=rate, output=True, output_device_index=self.speaker_device_index)
@@ -333,6 +363,110 @@ class VoiceControl :
         try:
             # APIにリクエストを送信してデータを取得
             response = requests.post(url, auth=auth, data=params)
+
+            # HTTPエラーがあれば例外を発生させる
+            response.raise_for_status()            
+
+            # 音声をファイルに保存
+            with open(WAV_PLAY_FILENAME, "wb") as out:
+                out.write(response.content)
+
+            ret = WAV_PLAY_FILENAME
+
+        except requests.exceptions.RequestException as e:
+            print("リクエストエラー:{}".format(e))
+
+        except IOError as e:
+            print("ファイルの保存エラー:{}".format(e))
+
+        print('ファイル保存完了 ;{}'.format(WAV_PLAY_FILENAME))
+
+        return ret
+
+    # VoiceVox WebAPI でのテキスト音声変換
+    def TextToSpeechWavWithVoiceVox(self, speeched_text) :
+        print("音声合成中(VoiceVox)")
+
+        # 音声合成設定
+        url = "https://api.tts.quest/v3/voicevox/synthesis"
+        params = {
+            "key": self.web_voicevox_api_key,
+            "speaker": global_charactor.setting_json["charactors"][global_charactor.sel_num]["Speaker"]["name"],
+            "text": speeched_text,
+        }
+        auth = (self.voice_text_api_key, '')
+        ret = ""
+
+        try:
+            # APIにリクエストを送信してデータを取得
+            res = requests.post(url, data=params)
+
+            # HTTPエラーがあれば例外を発生させる
+            res.raise_for_status()
+            res_json = json.loads(res.text)
+
+            # print("status = '{}'".format(response.status_code))
+            # print("content = '{}'".format(response.content))
+            # print("text = '{}'".format(response.text))
+            if (res_json["success"] == True) :
+
+                while True:
+                    # print("webDownloadUrl = '{}'".format(res_json["wavDownloadUrl"]))
+                    response = requests.get(res_json["wavDownloadUrl"])
+
+                    if (response.status_code == 200) :
+                        break
+
+                    # 404エラーの場合はもう一度やり直す。
+                    elif (response.status_code != 404) :
+                        # 404 以外のHTTPエラーがあれば例外を発生させる
+                        response.raise_for_status()
+                        break
+                    # 少しだけ待ってリトライ
+                    time.sleep(0.5)
+
+                # 音声をファイルに保存
+                with open(WAV_PLAY_FILENAME, "wb") as out:
+                    out.write(response.content)
+
+                ret = WAV_PLAY_FILENAME
+            else :
+                print("NOT success (VoiceVox")
+
+        except requests.exceptions.RequestException as e:
+            print(res.text)
+            print("リクエストエラー:{}".format(e))
+
+        except IOError as e:
+            print(res.text)
+            print("ファイルの保存エラー:{}".format(e))
+
+        print('ファイル保存完了 ;{}'.format(WAV_PLAY_FILENAME))
+
+        return ret
+
+    # AITalk WebAPI でのテキスト音声変換
+    def TextToSpeechWavWithAITalk(self, speeched_text) :
+        print("音声合成中(AITalk)")
+
+        # 音声合成設定
+        url = "https://webapi.aitalk.jp/webapi/v5/ttsget.php"
+        params = {
+            "username": self.aitalk_user,
+            "password": self.aitalk_password,
+            "speaker_name": global_charactor.setting_json["charactors"][global_charactor.sel_num]["Speaker"]["name"],
+            "ext": "wav",
+            "speed": global_charactor.setting_json["charactors"][global_charactor.sel_num]["Speaker"]["speed"],
+            "pitch": global_charactor.setting_json["charactors"][global_charactor.sel_num]["Speaker"]["pitch"],
+            "text": speeched_text
+        }
+        ret = ""
+
+        try:
+            # APIにリクエストを送信してデータを取得
+            response = requests.get(url, data=params)
+
+            print("URL:{} params:{}".format(url, params))
 
             # HTTPエラーがあれば例外を発生させる
             response.raise_for_status()            
