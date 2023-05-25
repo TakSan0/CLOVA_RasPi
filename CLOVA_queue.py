@@ -16,11 +16,11 @@ class SpeechQueue :
         print("Delete <SpeechQueue> class")
 
     # 文字列をキューに格納する
-    def AddToQueue(self, string):
+    def add(self, string):
         self._queue.append(string)
 
     # キューから文字列を取得する
-    def GetFromQueue(self):
+    def get(self):
         return self._queue.popleft()
 
     def __len__(self):
@@ -34,7 +34,7 @@ global_speech_queue = SpeechQueue()
 # ==================================
 #       本クラスのテスト用処理
 # ==================================
-def ModuleTest() :
+def module_test() :
     # 現状何もしない
     pass
 
@@ -43,5 +43,5 @@ def ModuleTest() :
 # ==================================
 if __name__ == "__main__":
     # 直接呼び出したときは、モジュールテストを実行する。
-    ModuleTest()
+    module_test()
 

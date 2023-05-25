@@ -12,7 +12,7 @@ class HttpServer :
         self._port = port
         self._handler = handler
         print("Create <HttpServer> class")
-        th.Thread(target = self.ServerProcess, args = (), name = 'HttpServerProcess', daemon = True).start()
+        th.Thread(target = self.serve, args = (), name = "HttpServerProcess", daemon = True).start()
 
     # デストラクタ
     def __del__(self) :
@@ -20,7 +20,7 @@ class HttpServer :
         print("Delete <HttpServer> class")
 
     # HTTPサーバーのメイン処理：起動したあとは、MyHandler で待ち受けているだけ
-    def ServerProcess(self):
+    def serve(self):
         # 8080 番ポートで受け付ける
         self.httpd = socketserver.TCPServer(("", self._port), self._handler)
         self.httpd.serve_forever()
@@ -29,11 +29,12 @@ class HttpServer :
 # ==================================
 #       本クラスのテスト用処理
 # ==================================
-def ModuleTest() :
+def module_test() :
     # インスタンス作成
     http_svr = HttpServer(8080, HttpReqLineHandler)
 
     # ループ処理
+    # TODO: wow
     while True :
         time.sleep(0.1)
 
@@ -42,4 +43,4 @@ def ModuleTest() :
 # ==================================
 if __name__ == "__main__":
     # 直接呼び出したときは、モジュールテストを実行する。
-    ModuleTest()
+    module_test()

@@ -1,0 +1,30 @@
+{
+  "character": {
+    "default_sel": 0
+  },
+  "hardware": {
+    "audio": {
+      "microphone": {
+        "num_ch": 1,
+        "index": 11,
+        "silent_thresh":300,
+        "term_duration":3000
+      },
+      "speaker": {
+        "num_ch": 1,
+        "index": 11
+      }
+    }
+  },
+  "sns": {
+    "line": {
+      "user_id": [
+        {
+          "name": "default",
+          "callname": "クローバ",
+          "id": ""
+        }
+      ]
+    }
+  }
+}

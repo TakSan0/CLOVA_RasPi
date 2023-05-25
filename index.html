@@ -64,6 +64,7 @@
             var speakerIndex = document.getElementById('speaker_index').value;
 
             // サーバーに選択された値を送信
+            // TODO: ew XMLHttpRequest fetch better
             var xhr = new XMLHttpRequest();
             xhr.open('POST', '/update', true);
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -72,13 +73,15 @@
                     console.log(xhr.responseText);
                 }
             };
-            xhr.send('default_char_sel=' + selectedCharactor +
-                     '&mic_channels=' + micChannels +
-                     '&mic_index=' + micIndex +
-                     '&silent_thresh=' + silentThreshold +
-                     '&term_duration=' + terminateSilentDuration +
-                     '&speaker_channels=' + speakerChannels +
-                     '&speaker_index=' + speakerIndex);
+            xhr.send(
+                'default_char_sel=' + selectedCharactor +
+                '&mic_channels=' + micChannels +
+                '&mic_index=' + micIndex +
+                '&silent_thresh=' + silentThreshold +
+                '&term_duration=' + terminateSilentDuration +
+                '&speaker_channels=' + speakerChannels +
+                '&speaker_index=' + speakerIndex
+            );
         });
     </script>
 </body>

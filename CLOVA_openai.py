@@ -1,19 +1,18 @@
-import time
 import os
 import openai
 from CLOVA_led import global_led_Ill
-from CLOVA_charactor import global_charactor
+from CLOVA_character import global_character
 
 # ==================================
 #         OpenAI APIクラス
 # ==================================
-class OpenaiApiControl :
-    OPENAI_CHARACTOR_CFG = "あなたはサービス終了で使えなくなったクローバの後を次ぎました。"
+class OpenAiApiControl :
+    OPENAI_character_CFG = "あなたはサービス終了で使えなくなったクローバの後を次ぎました。"
 
     # コンストラクタ
     def __init__(self) :
-        self.OPENAI_API_KEY = os.environ['OPENAI_API_KEY']
-        self.SetCharctorSetting("")
+        self.OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
+        self.ser_character_setting("")
         print("Create <OpenaiApiControl> class")
 
     # デストラクタ
@@ -21,25 +20,25 @@ class OpenaiApiControl :
         # 現状ログ出すだけ
         print("Delete <OpenaiApiControl> class")
 
-    def SetCharctorSetting(self, setting_str) :
-        self._char_setting_str = self.OPENAI_CHARACTOR_CFG + setting_str
+    def ser_character_setting(self, setting_str) :
+        self._char_setting_str = self.OPENAI_character_CFG + setting_str
 
-    def GetAnswerFromAi(self, aimodel, speeched_text) :
+    def get_answer(self, model_name, prompt) :
         openai.api_key = self.OPENAI_API_KEY
 
         # 底面 LED をピンクに
-        global_led_Ill.AllPink()
+        global_led_Ill.set_all_pink()
         print("OpenAI 応答作成中")
-        desc = global_charactor.GetCharactorDescription()
+        desc = global_character.get_character_description()
 
         if (self.OPENAI_API_KEY != "") :
             try:
 
                 ai_response = openai.ChatCompletion.create(
-                    model=aimodel,
+                    model=model_name,
                     messages=[
                         {"role": "system", "content":  self._char_setting_str + desc },
-                        {"role": "user", "content": speeched_text},
+                        {"role": "user", "content": prompt},
                     ]
                 )
                 #print(ai_response["choices"][0]["message"]["content"]) #返信のみを出力
@@ -73,7 +72,7 @@ class OpenaiApiControl :
 # ==================================
 #       本クラスのテスト用処理
 # ==================================
-def ModuleTest() :
+def module_test() :
     pass
 
 
@@ -82,5 +81,5 @@ def ModuleTest() :
 # ==================================
 if __name__ == "__main__":
     # 直接呼び出したときは、モジュールテストを実行する。
-    ModuleTest()
+    module_test()
 

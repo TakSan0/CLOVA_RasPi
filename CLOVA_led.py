@@ -37,7 +37,7 @@ class IndicatorLed :
         GPIO.cleanup(PIN_IND_LED_G)
 
     # LEDインディケーター On/Off
-    def SetLed(self, onoff, pin = PIN_IND_LED_G) :
+    def set_led(self, onoff, pin = PIN_IND_LED_G) :
         GPIO.output(pin, onoff)
 
 # ==================================
@@ -77,17 +77,17 @@ class IllminationLed :
     def __init__(self) :
         self.is_available = False
         print("Create <IllminationLed> class")
-        self.Initialize()
+        self.init()
 
     # デストラクタ
     def __del__(self) :
         print("Delete <IllminationLed> class")
 
-        self.AllRed()
-        self.Finalize()
+        self.set_all_red()
+        self.finalize()
 
     # 初期化処理
-    def Initialize(self) :
+    def init(self) :
         # Initialize Lib
         GPIO.setmode(GPIO.BCM)
         try :
@@ -154,7 +154,7 @@ class IllminationLed :
             self._i2c.write_byte_data(self.SLAVE_ADDR, 0x17, 0x00)
 
     # コマンドヘッダーの送信
-    def SendCommandHeader(self) :
+    def send_command_header(self) :
         if (self.is_available == True) :
             self._i2c.write_byte_data(self.SLAVE_ADDR, 0xFE, 0xC5)
             self._i2c.write_byte_data(self.SLAVE_ADDR, 0xFD, 0x01)
@@ -162,9 +162,9 @@ class IllminationLed :
             print("LED Device unavailable!")
 
     # ビット指定でRGB食を指定設定
-    def SetLedsWithEnableBits(self, bits, rgb_color) :
+    def set_leds_with_bit_mask(self, bits, rgb_color) :
         if (self.is_available == True) :
-            self.SendCommandHeader()
+            self.send_command_header()
             for num in range(len(self.REG_ADDRESS_TABLE)):
                 for rgb in range(len(self.REG_ADDRESS_TABLE[num])):
                     bits_mask = (1 << num)
@@ -177,52 +177,53 @@ class IllminationLed :
             print("LED Device unavailable!")
 
     # 配列指定ですべての LED を設定する
-    def SetAllLedWithArray(self, rgb_data) :
+    def set_all_led_with_array(self, rgb_data) :
         if (self.is_available == True) :
-            self.SendCommandHeader()
+            self.send_command_header()
             for num in range(len(rgb_data)):
                 for rgb in range(len(rgb_data[num])):
                     self._i2c.write_byte_data(self.SLAVE_ADDR, self.REG_ADDRESS_TABLE[num][rgb], rgb_data[num][rgb] )
         else :
             print("LED Device unavailable!")
 
+    # TODO: make all one method with enum
     # 全照灯
-    def AllOff(self) :
-        self.SetLedsWithEnableBits(self.ALL_BITS, self.RGB_OFF)
+    def set_all_off(self) :
+        self.set_leds_with_bit_mask(self.ALL_BITS, self.RGB_OFF)
 
     # 全赤点灯
-    def AllRed(self) :
-        self.SetLedsWithEnableBits(self.ALL_BITS, self.RGB_RED)
+    def set_all_red(self) :
+        self.set_leds_with_bit_mask(self.ALL_BITS, self.RGB_RED)
 
     # 全深緑点灯
-    def AllDarkGreen(self) :
-        self.SetLedsWithEnableBits(self.ALL_BITS, self.RGB_DARKGREEN)
+    def set_all_dark_green(self) :
+        self.set_leds_with_bit_mask(self.ALL_BITS, self.RGB_DARKGREEN)
 
     # 全緑点灯
-    def AllGreen(self) :
-        self.SetLedsWithEnableBits(self.ALL_BITS, self.RGB_GREEN)
+    def set_all_green(self) :
+        self.set_leds_with_bit_mask(self.ALL_BITS, self.RGB_GREEN)
 
-    def AllBlue(self) :
-        self.SetLedsWithEnableBits(self.ALL_BITS, self.RGB_BLUE)
+    def set_all_blue(self) :
+        self.set_leds_with_bit_mask(self.ALL_BITS, self.RGB_BLUE)
 
     # 全橙点灯
-    def AllOrange(self) :
-        self.SetLedsWithEnableBits(self.ALL_BITS, self.RGB_ORANGE)
+    def set_all_orange(self) :
+        self.set_leds_with_bit_mask(self.ALL_BITS, self.RGB_ORANGE)
 
     # 全黄点灯
-    def AllYellow(self) :
-        self.SetLedsWithEnableBits(self.ALL_BITS, self.RGB_YELLOW)
+    def set_all_yellow(self) :
+        self.set_leds_with_bit_mask(self.ALL_BITS, self.RGB_YELLOW)
 
     # 全桃点灯
-    def AllPink(self) :
-        self.SetLedsWithEnableBits(self.ALL_BITS, self.RGB_PINK)
+    def set_all_pink(self) :
+        self.set_leds_with_bit_mask(self.ALL_BITS, self.RGB_PINK)
 
     # 全水点灯
-    def AllCyan(self) :
-        self.SetLedsWithEnableBits(self.ALL_BITS, self.RGB_CYAN)
+    def set_all_cyan(self) :
+        self.set_leds_with_bit_mask(self.ALL_BITS, self.RGB_CYAN)
 
     # 終了処理
-    def Finalize(self) :
+    def finalize(self) :
         GPIO.cleanup(PIN_ILL_LED_POW)
         GPIO.cleanup(PIN_ILL_LED_ENA)
         print("Finalize")
@@ -235,6 +236,7 @@ global_led_Ill = IllminationLed()
 # ==================================
 #       本クラスのテスト用処理
 # ==================================
+# TODO: to a file
 illumi_data = [
   [ [0x00, 0x00, 0x00],[0x00, 0x00, 0x00],[0x00, 0x00, 0x00],[0x00, 0x00, 0x00],[0x00, 0x00, 0x00],[0x00, 0x00, 0x00],[0x00, 0x00, 0x00],[0x00, 0x00, 0x00],
     [0x00, 0x00, 0x00],[0x00, 0x00, 0x00],[0x00, 0x00, 0x00],[0x00, 0x00, 0x00],[0x00, 0x00, 0x00],[0x00, 0x00, 0x00],[0x00, 0x00, 0x00],[0x00, 0x00, 0x00],
@@ -1754,27 +1756,27 @@ illumi_data = [
 
 ]
 
-def ModuleTest() :
+def module_test() :
     ill_led = IllminationLed()
-    ill_led.AllRed()
+    ill_led.set_all_red()
     time.sleep(0.5)
-    ill_led.AllGreen()
+    ill_led.set_all_green()
     time.sleep(0.5)
-    ill_led.AllBlue()
+    ill_led.set_all_blue()
     time.sleep(0.5)
-    ill_led.AllOrange()
+    ill_led.set_all_orange()
     time.sleep(0.5)
-    ill_led.AllYellow()
+    ill_led.set_all_yellow()
     time.sleep(0.5)
-    ill_led.AllPink()
+    ill_led.set_all_pink()
     time.sleep(0.5)
-    ill_led.AllCyan()
+    ill_led.set_all_cyan()
     time.sleep(0.5)
-    ill_led.AllOff()
+    ill_led.set_all_off()
     time.sleep(0.5)
 
     for step in range(len(illumi_data)):
-        ill_led.SetAllLedWithArray(illumi_data[step])
+        ill_led.set_all_led_with_array(illumi_data[step])
         time.sleep(0.05)
 
 # ==================================
@@ -1782,5 +1784,5 @@ def ModuleTest() :
 # ==================================
 if __name__ == "__main__":
     # 直接呼び出したときは、モジュールテストを実行する。
-    ModuleTest()
+    module_test()
 

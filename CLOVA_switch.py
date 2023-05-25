@@ -1,5 +1,3 @@
-import threading as th
-import time
 import RPi.GPIO as GPIO
 
 # ==================================
@@ -30,10 +28,10 @@ class SwitchInput :
     # デストラクタ
     def __del__(self) :
         print("Delete <SwitchInput> class / Pin={}".format(self._pin))
-        self.Release()
+        self.release()
 
     # 解放処理
-    def Release(self) :
+    def release(self) :
         print("Relase key({})".format(self._pin))
         GPIO.remove_event_detect(self._pin)
         GPIO.cleanup(self._pin)
@@ -41,7 +39,7 @@ class SwitchInput :
 # ==================================
 #       本クラスのテスト用処理
 # ==================================
-def ModuleTest() :
+def module_test() :
     # 現状何もしない
     pass
 
@@ -50,5 +48,5 @@ def ModuleTest() :
 # ==================================
 if __name__ == "__main__":
     # 直接呼び出したときは、モジュールテストを実行する。
-    ModuleTest()
+    module_test()
 

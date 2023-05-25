@@ -1,9 +1,7 @@
-import os
 import sys
 import threading
 import time
 import RPi.GPIO as GPIO
-import json
 import wave
 import pyaudio as PyAudio
 
@@ -36,12 +34,12 @@ class TestClass :
     # デストラクタ
     def __del__(self) :
         # 現状ログ出すだけ
-        print("Delete <CharactorSelection> class")
+        print("Delete <characterSelection> class")
 
-    def RecPlayTestTask(self) :
-        voice = VoiceControl();
+    def task_test_playback(self) :
+        voice = VoiceControl()
         while(self.is_active) :
-            record_data = voice.RecordFromMic()
+            record_data = voice.microphone_record()
             with wave.open(WAV_FILENAME, "wb") as out:
                 out.setnchannels(voice.mic_num_ch)
                 out.setsampwidth(2)
@@ -51,12 +49,12 @@ class TestClass :
             time.sleep(0.5)
 
             print("再生開始")
-            voice.PlayAudioFile(WAV_FILENAME)
+            voice.play_audio_file(WAV_FILENAME)
             print("再生終了")
 
             time.sleep(1.5)
 
-    def GpioTestTask(self) :
+    def task_test_gpio(self) :
         sw_front_before = -1
         sw_back_minus_before = -1
         sw_back_plus_before = -1
@@ -150,7 +148,7 @@ class TestClass :
         GPIO.cleanup(PIN_LED_G)
         GPIO.cleanup(PIN_LED_B)
 
-    def scan_indecies(self):
+    def scan_indexes(self):
         pyaud = PyAudio.PyAudio()
 
         print ("デバイスインデックス総数: {0}".format(pyaud.get_device_count()))
@@ -161,9 +159,9 @@ class TestClass :
             print (line_str)
             json_data = line_str#json.loads(line_str)
 
-            # print("{}:{},{},{}".format(json_data['index'],json_data['name'],json_data['maxInputChannels'],json_data['maxOutputChannels'])) #デバッグ用
-            if ( ( json_data['name'] == "dmic_hw" ) and (json_data['maxInputChannels'] != 0) and (json_data['maxOutputChannels'] != 0) ):
-                found_index = json_data['index']
+            # print("{}:{},{},{}".format(json_data["index"],json_data["name"],json_data["maxInputChannels"],json_data["maxOutputChannels"])) #デバッグ用
+            if ( ( json_data["name"] == "dmic_hw" ) and (json_data["maxInputChannels"] != 0) and (json_data["maxOutputChannels"] != 0) ):
+                found_index = json_data["index"]
 
         if (found_index != -1) :
             print("入力(MIC)デバイスインデックス = {}".format(found_index))
@@ -175,7 +173,7 @@ class TestClass :
 # ==================================
 #       本クラスのテスト用処理
 # ==================================
-def ModuleTest() :
+def module_test() :
     # 呼び出し引数チェック
     if ((len(sys.argv) == 2) and (sys.argv[1]!="-h") and (sys.argv[1]!="--help")):
         test = TestClass()
@@ -185,24 +183,24 @@ def ModuleTest() :
             print("Ready! Press any switch to test or press [Enter] key to exit")
 
             test.is_active = True
-            gpio_test_thread = threading.Thread(target = test.GpioTestTask, args = (), name = 'GpioTestTask', daemon = True)
-            repplay_test_thread = threading.Thread(target = test.RecPlayTestTask, args = (), name = 'GpioTestTask', daemon = True)
+            gpio_test_thread = threading.Thread(target = test.task_test_gpio, args = (), name = "GpioTestTask", daemon = True)
+            pb_test_thread = threading.Thread(target = test.task_test_playback, args = (), name = "GpioTestTask", daemon = True)
             gpio_test_thread.start()
-            repplay_test_thread.start()
+            pb_test_thread.start()
 
             input()
 
-            global_speech_queue.AddToQueue("終了")
+            global_speech_queue.add("終了")
             time.sleep(1)
             test.is_active = False
             print("Exit")
             time.sleep(1)
             gpio_test_thread.join()
-            repplay_test_thread.join()
+            pb_test_thread.join()
 
         # インデックス値のスキャン
         elif (sys.argv[1] == "get_indecies") :
-            test.scan_indecies()
+            test.scan_indexes()
 
         # マイクの最低音量調整
         elif (sys.argv[1] == "adjust_mic") :
@@ -225,5 +223,5 @@ def ModuleTest() :
 # ==================================
 if __name__ == "__main__":
     # 直接呼び出したときは、モジュールテストを実行する。
-    ModuleTest()
+    module_test()
 

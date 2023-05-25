@@ -1,4 +1,3 @@
-import time
 from CLOVA_queue import global_speech_queue
 
 # ==================================
@@ -25,24 +24,24 @@ class VolumeControl :
         print("Delete <VolumeControl> class")
 
     # ボリューム [+] 押下時処理
-    def VolUpCallback(self, arg) :
+    def vol_up_cb(self, arg) :
         if (self._vol_step < self.VOL_MAX_STEP) :
             self._vol_step += 1
             self.vol_value = self.VOL_TABLE[self._vol_step]
             print("Vol + [={}({})]".format(self._vol_step, self.vol_value))
             vol_speech = "ボリュームを {} に設定しました。".format(str(self._vol_step))
             print(vol_speech)
-            global_speech_queue.AddToQueue(vol_speech)
+            global_speech_queue.add(vol_speech)
 
     # ボリューム [-] 押下時処理
-    def VolDownCallback(self, arg) :
+    def vol_down_cb(self, arg) :
         if (self._vol_step > self.VOL_MIN_STEP) :
             self._vol_step -= 1
             self.vol_value = self.VOL_TABLE[self._vol_step]
             print("Vol - [={}({})]".format(self._vol_step, self.vol_value))
             vol_speech = "ボリュームを {} に設定しました。".format(str(self._vol_step))
             print(vol_speech)
-            global_speech_queue.AddToQueue(vol_speech)
+            global_speech_queue.add(vol_speech)
 
 # ==================================
 #      外部参照用のインスタンス
@@ -52,7 +51,7 @@ global_vol = VolumeControl()
 # ==================================
 #       本クラスのテスト用処理
 # ==================================
-def ModuleTest() :
+def module_test() :
     # 現状何もしない
     pass
 
@@ -60,5 +59,5 @@ def ModuleTest() :
 # 本モジュールを直接呼出した時の処理
 # ==================================
 if __name__ == "__main__":
-    ModuleTest()
+    module_test()
 

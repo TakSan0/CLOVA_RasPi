@@ -18,7 +18,7 @@ class TimerControl :
         self._active = False
         self._is_timer_set = False
         self._is_alarm_on = False
-        self._timer_thread = th.Thread(target = self.TimerMain, args = (), name = 'TimerMain', daemon = True)
+        self._timer_thread = th.Thread(target = self._thread_timer, args = (), name = "TimerMain", daemon = True)
         self._timer_thread.start()
         self._duration = ""
 
@@ -26,36 +26,36 @@ class TimerControl :
     def __del__(self) :
         print("Delete <TimerControl> class")
 
-        self.Stop()
+        self.stop()
         self._active = False
         time.sleep(1)
         self._timer_thread.join()
         print("_timer_thread Joined!")
 
     # タイマの監視を開始
-    def Start(self) :
+    def start(self) :
         if (self._is_timer_set == False) :
             print("Timer started!")
             self._is_timer_set = True
 
 
     # タイマの監視を停止
-    def Stop(self) :
+    def stop(self) :
         if (self._is_timer_set == True) :
             print("Timer stopped!")
             self._is_timer_set = False
 
     # タイマのスレッド関数
-    def TimerMain(self) :
+    def _thread_timer(self) :
         self._active = True
 
         while (self._active == True) :
-            self.TimerWatch()
+            self._timer_update()
             time.sleep(1)
 
 
     # タイマの監視処理
-    def TimerWatch(self) :
+    def _timer_update(self) :
         if (self._is_timer_set == True) :
             print ("Waiting Timer!")
             if (datetime.datetime.now() >= self.target_time) :
@@ -63,13 +63,13 @@ class TimerControl :
                 self._is_alarm_on = True
                 print("Time UP!!!!")
                 answer_text = "{} 経ちました。".format(self._duration)
-                global_speech_queue.AddToQueue(answer_text)
+                global_speech_queue.add(answer_text)
                 print(answer_text)
                 self.target_time += datetime.timedelta(seconds=10)
                 #self.Stop()
 
     # タイマーの 要求に答える。タイマーの要求ではなければ 空 の文字列を返す
-    def GetAnswerIfTextIsRequestTimerSet(self, request_text) :
+    def try_get_answer(self, request_text) :
         if (self._is_alarm_on == False) :
             if ( ( re.match(".*後に.*知らせて", request_text) != None ) or ( re.match(".*後に.*タイマ.*セット", request_text) != None ) ):
                 print("Match1")
@@ -78,8 +78,8 @@ class TimerControl :
                 self._duration = duration
                 print(duration)
                 if (duration != "" ) :
-                    answer_text = '{}後にタイマーをセットします。'.format(duration)
-                    self.SetTargetDateTimeForTheDuration(duration)
+                    answer_text = "{}後にタイマーをセットします。".format(duration)
+                    self.set_duration(duration)
                     print(answer_text)
                     #self._is_timer_set = True #??
                     return answer_text
@@ -88,11 +88,11 @@ class TimerControl :
             else :
                 return ""
         else :
-            if ('わかりました' in request_text ) or ('了解' in request_text ) or ('止めて' in request_text ) :
+            if ("わかりました" in request_text ) or ("了解" in request_text ) or ("止めて" in request_text ) :
                 answer_text = "タイマ通知を終了します。"
                 self._is_alarm_on = False
                 self._is_timer_set = False
-                self.Stop()
+                self.stop()
                 print(answer_text)
                 return answer_text
             else :
@@ -104,19 +104,19 @@ class TimerControl :
                 return answer_text
 
     # 満了までの期間から、満了日時分秒を割り出す
-    def SetTargetDateTimeForTheDuration(self, duration) :
+    def set_duration(self, duration) :
         if ( ( "時間" in duration ) or ( "分" in duration ) or ( "秒" in duration ) ) :
-            secs = self.ParseTime(duration)
+            secs = self.parse_time(duration)
             self.target_time = datetime.datetime.now() + datetime.timedelta(seconds=secs)
             print("{} = {} sec @ {}".format(duration, secs, self.target_time))
             self._is_timer_set = True
-            self.Start()
+            self.start()
             #is_timer_set = True
 
     # 文字列の時分秒の部分を字句解析して秒に変換
-    def ParseTime(self, time_string) :
+    def parse_time(self, time_string) :
         print("time_string={}".format(time_string))
-        time_pattern = r'(?:(\d+)時間)?(?:(\d+)分)?(?:(\d+)秒)?'
+        time_pattern = r"(?:(\d+)時間)?(?:(\d+)分)?(?:(\d+)秒)?"
         hours, minutes, seconds = map(int, re.match(time_pattern, time_string).groups(default=0))
         print("{}時間 {}分 {}秒 = {}sec".format(hours, minutes, seconds, ( (hours * 3600) + (minutes * 60) + seconds)))
         return ( (hours * 3600) + (minutes * 60) + seconds)
@@ -124,15 +124,15 @@ class TimerControl :
 # ==================================
 #       本クラスのテスト用処理
 # ==================================
-def ModuleTest2() :
+def module_test2() :
     tmr = TimerControl()
     #seconds = tmr.ParseTime("3時間40分59秒後")
-    seconds = tmr.ParseTime("1分10秒後")
+    seconds = tmr.parse_time("1分10秒後")
     print(seconds)
 
-def ModuleTest() :
+def module_test() :
     tmr = TimerControl()
-    tmr.GetAnswerIfTextIsRequestTimerSet("1分10秒後に知らせて")
+    tmr.try_get_answer("1分10秒後に知らせて")
 
     test_event = th.Event()
     test_thread = th.Thread(target=WaitForTestOrEnterKey, args=(test_event,))
@@ -157,5 +157,5 @@ def WaitForTestOrEnterKey(event):
 # ==================================
 if __name__ == "__main__":
     # 直接呼び出したときは、モジュールテストを実行する。
-    ModuleTest()
+    module_test()
 

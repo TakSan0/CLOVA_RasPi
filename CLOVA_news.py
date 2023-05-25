@@ -34,7 +34,7 @@ class NewsReader :
         print("Delete <NewsReader> class")
 
     # ニュース 質問に答える。ニュースの問い合わせではなければ 空 の文字列を返す
-    def GetAnswerIfTextIsRequestingNews(self, request_text) :
+    def try_get_answer(self, request_text) :
         # 前回がニュースで無ければ
         if (self._news_count == 0) :
             match = re.match("(.+)ニュース.*教えて", request_text)
@@ -49,14 +49,14 @@ class NewsReader :
                     news_list = soup.find_all(href=re.compile("news.yahoo.co.jp/pickup"))
                     news_headlines = "以下のニュースがあります。"
 
-                    elements = soup.find_all( href = re.compile( 'news.yahoo.co.jp/pickup' ) )
+                    elements = soup.find_all( href = re.compile( "news.yahoo.co.jp/pickup" ) )
                     num = 1
                     for element in elements:
                         # ニューステキスト
                         news_text = element.getText()
                         # 後で、番号を指定するとニュースを読み上げる様に拡張するために LINK も保存しておく
-                        #link = element.attrs['href']
-                        news_headlines += "{}. {}".format(str(num), news_text) + '\n'
+                        #link = element.attrs["href"]
+                        news_headlines += "{}. {}".format(str(num), news_text) + "\n"
                         num += 1
                     print(news_headlines)
                     self._news_count = num - 1
@@ -87,7 +87,7 @@ class NewsReader :
                 if (1 <= selected_num <= self._news_count) :
                     # 選択された番号から URL を取得する
                     selected_news = self._news_list[selected_num - 1]
-                    news_url = selected_news['href']
+                    news_url = selected_news["href"]
                     print("URL={}".format(news_url))
 
                     # URL からデータを取得して、さらにその記事全文の URL を取得する
@@ -117,13 +117,13 @@ class NewsReader :
 # ==================================
 #       本クラスのテスト用処理
 # ==================================
-def ModuleTest() :
+def module_test() :
     news = NewsReader()
-    news_text = news.GetAnswerIfTextIsRequestingNews("国際ニュースを教えて")
+    news_text = news.try_get_answer("国際ニュースを教えて")
     print(news_text)
     time.sleep(5)
 
-    news_text= news.GetAnswerIfTextIsRequestingNews("1番")
+    news_text= news.try_get_answer("1番")
     print(news_text)
 
 # ==================================
@@ -131,4 +131,4 @@ def ModuleTest() :
 # ==================================
 if __name__ == "__main__":
     # 直接呼び出したときは、モジュールテストを実行する。
-    ModuleTest()
+    module_test()

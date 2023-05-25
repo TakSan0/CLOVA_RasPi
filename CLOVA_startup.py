@@ -20,11 +20,11 @@ def is_process_running(process_name):
         return False
 
 # まだ起動していなければ CLOVA_RasPi.py を起動する関数
-def start_CLOVA_RasPi():
+def start_main():
     if not is_process_running("CLOVA_RasPi.py"):
-        program_path = os.path.expanduser('~/CLOVA_RasPi/CLOVA_RasPi.py')
+        program_path = os.path.expanduser("~/CLOVA_RasPi/CLOVA_RasPi.py")
         print("Starting : {}".format(program_path))
-        subprocess.Popen(['/usr/bin/python3', program_path])
+        subprocess.Popen(["/usr/bin/python3", program_path])
         time.sleep(1)
 
 # GPIOの初期化
@@ -36,10 +36,10 @@ led = ind_led()
 while True:
     if not GPIO.input(PIN_BACK_SW_MUTE):
         print("Sw ON!")
-        led.SetLed(led.LED_ON)
+        led.set_led(led.LED_ON)
         #GPIO.output(PIN_LED_G, True)
-        start_CLOVA_RasPi()
+        start_main()
     else:
-        led.SetLed(led.LED_OFF)
+        led.set_led(led.LED_OFF)
         #GPIO.output(PIN_LED_G, False)
     time.sleep(0.1)

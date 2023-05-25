@@ -1,6 +1,4 @@
-import time
 import RPi.GPIO as GPIO
-import smbus
 
 PIN_FRONT_SW = 4
 PIN_BACK_SW_MINUS = 2
@@ -55,13 +53,13 @@ class GPIOControl :
 # ==================================
 #       本クラスのテスト用処理
 # ==================================
-def ModuleTest() :
+def module_test() :
     # 現状何もしない
     pass
 
 # ==================================
 # 本モジュールを直接呼出した時の処理
 # ==================================
-if __name__ == '__main__':
+if __name__ == "__main__":
     # 直接呼び出したときは、モジュールテストを実行する。
-    ModuleTest()
+    module_test()
