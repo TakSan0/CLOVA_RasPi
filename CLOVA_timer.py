@@ -3,7 +3,7 @@ import time
 import datetime
 import re
 
-from CLOVA_queue import SpeechQueue as speech_queue
+from CLOVA_queue import global_speech_queue
 
 # ==================================
 #         タイマー管理クラス
@@ -63,9 +63,9 @@ class TimerControl :
                 self._is_alarm_on = True
                 print("Time UP!!!!")
                 answer_text = "{} 経ちました。".format(self._duration)
-                speech_queue.AddToQueue(answer_text)
+                global_speech_queue.AddToQueue(answer_text)
                 print(answer_text)
-                self.target_time += datetime.timedelta(seconds=5)
+                self.target_time += datetime.timedelta(seconds=10)
                 #self.Stop()
 
     # タイマーの 要求に答える。タイマーの要求ではなければ 空 の文字列を返す
@@ -97,7 +97,7 @@ class TimerControl :
                 return answer_text
             else :
                 #answer_text = "{} 経ちました。".format(self._duration)
-                #speech_queue.AddToQueue(answer_text)
+                #global_speech_queue.AddToQueue(answer_text)
 
                 answer_text = "終了待ちです。";
                 print(answer_text)
