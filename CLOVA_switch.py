@@ -1,4 +1,7 @@
-import RPi.GPIO as GPIO
+try:
+    import RPi.GPIO as GPIO
+except:
+    from fake_rpi.RPi import GPIO
 
 # ==================================
 #           キー入力クラス

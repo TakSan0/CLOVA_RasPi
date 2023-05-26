@@ -11,8 +11,8 @@ from google.cloud import speech_v1p1beta1 as speech
 from google.cloud import texttospeech as tts
 from pydub import AudioSegment
 from CLOVA_led import global_led_Ill
-from CLOVA_config import global_config_sys
-from CLOVA_character import global_character
+from CLOVA_config import global_config_prov
+from CLOVA_character import global_character_prov
 from CLOVA_volume import global_vol
 from CLOVA_queue import global_speech_queue
 
@@ -36,12 +36,13 @@ class VoiceControl :
         print("Create <VoiceControl> class")
 
         # 設定パラメータを読み込み
-        self.mic_num_ch = global_config_sys.settings["hardware"]["audio"]["microphone"]["num_ch"]
-        self.mic_device_index = global_config_sys.settings["hardware"]["audio"]["microphone"]["index"]
-        self.silent_threshold = global_config_sys.settings["hardware"]["audio"]["microphone"]["silent_thresh"]
-        self.terminate_silent_duration = global_config_sys.settings["hardware"]["audio"]["microphone"]["term_duration"]
-        self.speaker_num_ch = global_config_sys.settings["hardware"]["audio"]["speaker"]["num_ch"]
-        self.speaker_device_index = global_config_sys.settings["hardware"]["audio"]["speaker"]["index"]
+        conf = global_config_prov.get_general_config()
+        self.mic_num_ch = conf["hardware"]["audio"]["microphone"]["num_ch"]
+        self.mic_device_index = conf["hardware"]["audio"]["microphone"]["index"]
+        self.silent_threshold = conf["hardware"]["audio"]["microphone"]["silent_thresh"]
+        self.terminate_silent_duration = conf["hardware"]["audio"]["microphone"]["term_duration"]
+        self.speaker_num_ch = conf["hardware"]["audio"]["speaker"]["num_ch"]
+        self.speaker_device_index = conf["hardware"]["audio"]["speaker"]["index"]
         print("MiC:NumCh={}, Index={}, Threshold={}, Duration={}, SPK:NumCh={}, Index={}".format(self.mic_num_ch, self.mic_device_index,  self.silent_threshold, self.terminate_silent_duration, self.speaker_num_ch, self.speaker_device_index))#for debug
 
         # Speech-to-Text API クライアントを作成する
@@ -60,6 +61,7 @@ class VoiceControl :
         self.voice_text_api_key = os.environ["VOICE_TEXT_API_KEY"]
         # Web版Voice Vox API キーを取得
         self.web_voicevox_api_key = os.environ["WEB_VOICEVOX_API_KEY"]
+        self.voicevox_custom_api_endpoint = os.environ["VOICEVOX_CUSTOM_API_ENDPOINT"]
         # ALTalk ユーザー名パスワードを取得
         self.aitalk_user = os.environ["AITALK_USER"]
         self.aitalk_password = os.environ["AITALK_PASSWORD"]
@@ -172,11 +174,11 @@ class VoiceControl :
         global_led_Ill.set_all_orange()
 
         # 設定値により音声認識(STT)システムを選択する
-        system = global_character.setting_json["characters"][global_character.sel_num]["Listener"]["system"]
+        system = global_config_prov.get_general_config()["apis"]["stt"]["system"]
         if (system == "GoogleCloudSpeech") :
-            speeched_text = self.SpeechToTextWithGoogleSpeech(record_data)
+            speeched_text = self._internal_speech_to_text_GCP(record_data)
         elif (system == "GoogleSpeechRecognition") :
-            speeched_text = self.SpeechToTextWithGoogleSpeechRecognition(record_data)
+            speeched_text = self._internal_speech_to_text_GSR(record_data)
         else :
             print("Invalid Speech System for SpeechToText : {}".format(system))
             speeched_text = ""
@@ -189,15 +191,15 @@ class VoiceControl :
         global_led_Ill.set_all_blue()
 
         # 設定値により音声合成(TTS)システムを選択する
-        system = global_character.setting_json["characters"][global_character.sel_num]["Speaker"]["system"]
+        system = global_character_prov.character["tts"]["system"]
         if (system == "GoogleTextToSpeech") :
-            file_name = self.TextToSpeechWavWithGoogleSpeech(text_to_speech)
+            file_name = self._internal_text_2_speech_GCP(text_to_speech)
         elif (system == "VoiceText") :
-            file_name = self.TextToSpeechWavWithVoiceText(text_to_speech)
+            file_name = self._internal_text_2_speech_VT(text_to_speech)
         elif (system == "VoiceVox") :
-            file_name = self.TextToSpeechWavWithVoiceVox(text_to_speech)
+            file_name = self._internal_text_2_speech_VV(text_to_speech)
         elif (system == "AITalk") :
-            file_name = self.TextToSpeechWavWithAITalk(text_to_speech)
+            file_name = self._internal_text_2_speech_AIT(text_to_speech)
         else :
             print("Invalid Speech System for TextToSpeech : {}".format(system))
             file_name = ""
@@ -205,6 +207,7 @@ class VoiceControl :
         return file_name
 
     # 音声ファイルの再生
+    # TODO: pipe stdin to prevent from damaging sd card
     def play_audio_file(self, filename) :
         # 底面 LED を水に
         global_led_Ill.set_all_cyan()
@@ -265,14 +268,14 @@ class VoiceControl :
         time.sleep(0.1)
 
     # Google-Speech での音声テキスト変換
-    def SpeechToTextWithGoogleSpeech(self, record_data) :
+    def _internal_speech_to_text_GCP(self, record_data) :
         print("音声からテキストに変換中(Google Speech)")
 
         # Speech-to-Text の認識設定
         config = speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
             sample_rate_hertz=GOOGLE_SPEECH_RATE,
-            language_code=global_character.setting_json["characters"][global_character.sel_num]["Listener"]["language"],
+            language_code=global_config_prov.get_general_config()["apis"]["stt"]["params"]["language"],
             enable_automatic_punctuation=True,
         )
 
@@ -293,7 +296,7 @@ class VoiceControl :
         return speeched_text
 
     # Google-SpeechRecognition での音声テキスト変換
-    def SpeechToTextWithGoogleSpeechRecognition(self, record_data) :
+    def _internal_speech_to_text_GSR(self, record_data) :
         print("音声からテキストに変換中(Google Recognition)")
 
         speeched_text = ""
@@ -302,35 +305,38 @@ class VoiceControl :
         recognizer = google_sr.Recognizer()
         audio_data = google_sr.AudioData(record_data, sample_rate=GOOGLE_SPEECH_RATE, sample_width=2)
 
-        speeched_text = recognizer.recognize_google(audio_data, language=global_character.setting_json["characters"][global_character.sel_num]["Listener"]["language"])
+        try:
+            speeched_text = recognizer.recognize_google(audio_data, language=global_config_prov.get_general_config()["apis"]["stt"]["params"]["language"])
+        except Exception:
+            pass
 
         return speeched_text
 
     # Google-Speech でのテキスト音声変換
-    def TextToSpeechWavWithGoogleSpeech(self, speeched_text) :
+    def _internal_text_2_speech_GCP(self, speeched_text) :
         print("音声合成中(Google TTS)")
 
         # テキスト入力
         synthesis_input = tts.SynthesisInput(text=speeched_text)
 
         # パラメータを読み込み
-        if ( global_character.setting_json["characters"][global_character.sel_num]["Speaker"]["gender"] == "MALE" ) :
+        if ( global_character_prov.character["tts"]["params"]["gender"] == "MALE" ) :
             gender_sel = tts.SsmlVoiceGender.MALE
-        elif ( global_character.setting_json["characters"][global_character.sel_num]["Speaker"]["gender"] == "FEMALE" ) :
+        elif ( global_character_prov.character["tts"]["params"]["gender"] == "FEMALE" ) :
             gender_sel = tts.SsmlVoiceGender.FEMALE
-        elif ( global_character.setting_json["characters"][global_character.sel_num]["Speaker"]["gender"] == "NEUTRAL" ) :
+        elif ( global_character_prov.character["tts"]["params"]["gender"] == "NEUTRAL" ) :
             gender_sel = tts.SsmlVoiceGender.NEUTRAL
         else :
             gender_sel = tts.SsmlVoiceGender.SSML_VOICE_GENDER_UNSPECIFIED
-        pitch_cfg = float(global_character.setting_json["characters"][global_character.sel_num]["Speaker"]["pitch"])
-        rate_cfg = float(global_character.setting_json["characters"][global_character.sel_num]["Speaker"]["rate"])
+        pitch_cfg = float(global_character_prov.character["tts"]["params"]["pitch"])
+        rate_cfg = float(global_character_prov.character["tts"]["params"]["rate"])
 
 
         # 音声合成設定
         voice_config = tts.VoiceSelectionParams(
-            language_code=global_character.setting_json["characters"][global_character.sel_num]["Speaker"]["language"],
+            language_code=global_character_prov.character["tts"]["params"]["language"],
             ssml_gender=gender_sel,
-            name=global_character.setting_json["characters"][global_character.sel_num]["Speaker"]["name"]
+            name=global_character_prov.character["tts"]["params"]["name"]
         )
 
         # 音声ファイル形式設定
@@ -352,15 +358,15 @@ class VoiceControl :
         return WAV_PLAY_FILENAME
 
     # VoiceText WebAPI でのテキスト音声変換
-    def TextToSpeechWavWithVoiceText(self, speeched_text) :
+    def _internal_text_2_speech_VT(self, speeched_text) :
         print("音声合成中(VoiceText)")
 
         # 音声合成設定
         url = "https://api.voicetext.jp/v1/tts"
         params = {
             "text": speeched_text,
-            "speaker": global_character.setting_json["characters"][global_character.sel_num]["Speaker"]["name"],
-            "emotion": global_character.setting_json["characters"][global_character.sel_num]["Speaker"]["emotion"]
+            "speaker": global_character_prov.character["tts"]["params"]["name"],
+            "emotion": global_character_prov.character["tts"]["params"]["emotion"]
         }
         auth = (self.voice_text_api_key, "")
         ret = ""
@@ -389,17 +395,19 @@ class VoiceControl :
         return ret
 
     # VoiceVox WebAPI でのテキスト音声変換
-    def TextToSpeechWavWithVoiceVox(self, speeched_text) :
+    def _internal_text_2_speech_VV(self, speeched_text) :
         print("音声合成中(VoiceVox)")
+
+        if self.voicevox_custom_api_endpoint != "":
+            return self._internal_text_2_speech_VV_engine(speeched_text)
 
         # 音声合成設定
         url = "https://api.tts.quest/v3/voicevox/synthesis"
         params = {
             "key": self.web_voicevox_api_key,
-            "speaker": global_character.setting_json["characters"][global_character.sel_num]["Speaker"]["name"],
+            "speaker": global_character_prov.character["tts"]["params"]["name"],
             "text": speeched_text,
         }
-        auth = (self.voice_text_api_key, "")
         ret = ""
 
         try:
@@ -450,8 +458,28 @@ class VoiceControl :
 
         return ret
 
+    def _internal_text_2_speech_VV_engine(self, speeched_text):
+        # impl of https://github.com/VOICEVOX/voicevox_engine/blob/master/README.md
+        try:
+            phrase = requests.post(self.voicevox_custom_api_endpoint + "/audio_query", params={
+                "speaker": global_character_prov.character["tts"]["params"]["x_voice_vox_id"],
+                "text": speeched_text
+            })
+            phrase.raise_for_status()
+
+            res = requests.post(self.voicevox_custom_api_endpoint + "/synthesis", params={ "speaker": global_character_prov.character["tts"]["params"]["x_voice_vox_id"] }, data=phrase.content)
+            res.raise_for_status()
+
+            with open(WAV_PLAY_FILENAME, mode="wb") as f:
+                f.write(res.content)
+
+            return WAV_PLAY_FILENAME
+        except Exception as e:
+            print(e)
+            return ""
+
     # AITalk WebAPI でのテキスト音声変換
-    def TextToSpeechWavWithAITalk(self, speeched_text) :
+    def _internal_text_2_speech_AIT(self, speeched_text) :
         print("音声合成中(AITalk)")
 
         # 音声合成設定
@@ -459,10 +487,10 @@ class VoiceControl :
         params = {
             "username": self.aitalk_user,
             "password": self.aitalk_password,
-            "speaker_name": global_character.setting_json["characters"][global_character.sel_num]["Speaker"]["name"],
+            "speaker_name": global_character_prov.character["tts"]["params"]["name"],
             "ext": "wav",
-            "speed": global_character.setting_json["characters"][global_character.sel_num]["Speaker"]["speed"],
-            "pitch": global_character.setting_json["characters"][global_character.sel_num]["Speaker"]["pitch"],
+            "speed": global_character_prov.character["tts"]["params"]["speed"],
+            "pitch": global_character_prov.character["tts"]["params"]["pitch"],
             "text": speeched_text
         }
         ret = ""

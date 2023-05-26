@@ -1,115 +1,106 @@
-import os
-import time
 import json
 from CLOVA_queue import global_speech_queue
+from CLOVA_config import global_config_prov
+from typing import Tuple
 
 # ==================================
 #       キャラクタ管理クラス
 # ==================================
-class characterSelection :
+class CharacterProvider :
 
     # コンストラクタ
     def __init__(self) :
-        print("Create <characterSelection> class")
+        print("Create <CharacterProvider> class")
 
         # キャラクタ設定ファイルの読み込み
         self.read_character_config_file()
 
 
-    # デストラクタ
+    # デストラクタnetsh
     def __del__(self) :
         # 現状ログ出すだけ
-        print("Delete <characterSelection> class")
+        print("Delete <CharacterProvider> class")
 
     # キャラクタ設定
-    def set_character(self, num) :
-        self.sel_num = num
-        select_speech = "キャラクタ {} さんが選択されました。".format(self.setting_json["characters"][self.sel_num]["Name"])
+    def set_character(self, id) :
+        self.character = self.systems["characters"][id]
+        self.current_character_num = self.character_index.index(id)
+        select_speech = "キャラクタ {} さんが選択されました。".format(self.character["persona"]["name"])
         print(select_speech)
         global_speech_queue.add(select_speech)
 
+    def get_character_settings(self):
+        return self.character
+
     # キャラクタの特徴を取得。
-    def get_character_description(self) :
+    def get_character_prompt(self) :
         # OpenAI に指示するキャラクタの特徴をひとつの文字列化する。
         description = ""
-        if (self.setting_json["characters"][self.sel_num]["Personality"]["name"] != "") :
-            description += "あなたの名前は {}です。\n".format(self.setting_json["characters"][self.sel_num]["Personality"]["name"])
+        if (self.character["persona"]["name"] != "") :
+            description += "あなたの名前は {}です。\n".format(self.character["persona"]["name"])
 
-        if (self.setting_json["characters"][self.sel_num]["Personality"]["gender"] != "") :
-            description += "あなたの性別は {}です。\n".format(self.setting_json["characters"][self.sel_num]["Personality"]["gender"])
+        if (self.character["persona"]["gender"] != "") :
+            description += "あなたの性別は {}です。\n".format(self.character["persona"]["gender"])
 
-        if (self.setting_json["characters"][self.sel_num]["Personality"]["myself"] != "") :
-            description += "あなたは一人称として {}を使います。\n".format(self.setting_json["characters"][self.sel_num]["Personality"]["myself"])
+        if (self.character["persona"]["myself"] != "") :
+            description += "あなたは一人称として {}を使います。\n".format(self.character["persona"]["myself"])
 
-        if (self.setting_json["characters"][self.sel_num]["Personality"]["type"] != "") :
-            description += "あなたの性格は {}\n".format(self.setting_json["characters"][self.sel_num]["Personality"]["type"])
+        if (self.character["persona"]["type"] != "") :
+            description += "あなたの性格は {}\n".format(self.character["persona"]["type"])
 
-        if (self.setting_json["characters"][self.sel_num]["Personality"]["talkstyle"] != "") :
-            description += "あなたの話し方は {}\n".format(self.setting_json["characters"][self.sel_num]["Personality"]["talkstyle"])
+        if (self.character["persona"]["talk_style"] != "") :
+            description += "あなたの話し方は {}\n".format(self.character["persona"]["talk_style"])
 
-        if (self.setting_json["characters"][self.sel_num]["Personality"]["detail"] != "") :
-            description += "あなたは {}\n".format(self.setting_json["characters"][self.sel_num]["Personality"]["detail"])
+        if (self.character["persona"]["detail"] != "") :
+            description += "あなたは {}\n".format(self.character["persona"]["detail"])
 
         print("character Description={}".format(description))
         return description
 
-    # キャラクタ選択可否のチェック
-    def check_character_selectable(self, num) :
-        ret = True
-
-        # Web版Voice Text 用のキャラクタの場合
-        if (self.setting_json["characters"][num]["Speaker"]["system"] == "VoiceText" ) :
-            # 空白なら無効化
-            if (os.environ["VOICE_TEXT_API_KEY"] == "") :
-                ret = False
-        # |WEB版VOICEVOX API 用のキャラクタの場合
-        if (self.setting_json["characters"][num]["Speaker"]["system"] == "VoiceVox" ) :
-            # 空白なら無効化
-            if (os.environ["WEB_VOICEVOX_API_KEY"] == "") :
-                ret = False
-        # AITalk WebAPI 用のキャラクタの場合
-        if (self.setting_json["characters"][num]["Speaker"]["system"] == "AITalk") :
-            # 空白なら無効化
-            if (os.environ["AITALK_USER"] == "") or (os.environ["AITALK_PASSWORD"] == "") :
-                ret = False
-
-        return ret
+    # キャラクタに必要なクレデンシャル名を取得
+    def get_requirements(self, id) -> Tuple[Tuple[str]]:
+        return global_config_prov.get_requirements_config()["tts"] \
+            [self.systems['characters'][id]["tts"]["system"]] \
+            ["requires"]
 
     # 次のキャラクターを選択
-    def select_next_character(self, arg) :
-        num = self.sel_num
+    def select_next_character(self) :
+        num = self.current_character_num
         while True :
             # 次を選択
-            if ( (num + 1) < self.num_of_char) :
+            if ( (num + 1) < self.characters_len) :
                 num = num + 1
             else :
                 num = 0
+
             # 選択可のキャラクタまで行くか、一周したら抜ける
-            if ( (self.check_character_selectable(num) == True ) or (num == self.sel_num ) ):
+            if (
+                global_config_prov.is_requirements_met(self.get_requirements(self.character_index[num])) or
+                num == self.current_character_num
+            ):
                 break
 
         self.set_character(num)
 
     # キャラクタ設定ファイルを読み出す
     def read_character_config_file(self) :
-        with open("~/CLOVA_RasPi/CLOVA_character.json", "r", encoding="utf-8") as cfg_file:
+        with open("./CLOVA_systems.json", "r", encoding="utf-8") as cfg_file:
             file_text = cfg_file.read()
-        self.setting_json = json.loads(file_text)
-        self.num_of_char = len(self.setting_json["characters"])
+        self.systems = json.loads(file_text)
+        self.character_index = list(self.systems["characters"].keys())
+        self.characters_len = len(self.character_index)
 
 # ==================================
 #      外部参照用のインスタンス
 # ==================================
-global_character = characterSelection()
+global_character_prov = CharacterProvider()
 
 # ==================================
 #       本クラスのテスト用処理
 # ==================================
 def module_test() :
     # 現状何もしない
-    print( "CharCount = {}".format(str(len(global_character.setting_json["characters"]))))
-    print( global_character.setting_json["characters"][0]["Name"] )
-    print( global_character.setting_json["characters"][1]["Name"] )
+    print( "characters_len = {}".format(str(global_character_prov.systems["characters"].keys())))
 
 # ==================================
 # 本モジュールを直接呼出した時の処理

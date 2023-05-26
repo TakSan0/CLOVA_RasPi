@@ -6,7 +6,7 @@ from CLOVA_weather import WeatherGetter
 from CLOVA_line import LineSender
 
 from CLOVA_queue import global_speech_queue
-from CLOVA_character import global_character
+from CLOVA_config import global_config_prov
 
 # ==================================
 #          会話制御クラス
@@ -90,9 +90,8 @@ class Conversation :
         # どれにも該当しないときには AI に任せる。
         if (answer_selected == False ) :
 
-            # OpenAI 系の場合(最初の3文字が "gpt" の場合)
-            if ( global_character.setting_json["characters"][global_character.sel_num]["Personality"]["aisystem"][:3] == "gpt" ) :
-                answer_text = self.openai.get_answer(global_character.setting_json["characters"][global_character.sel_num]["Personality"]["aisystem"], request_string)
+            if ( global_config_prov.get_general_config()["apis"]["conversation"]["system"] == "OpenAI-ChatGPT" ) :
+                answer_text = self.openai.get_answer(global_config_prov.get_general_config()["apis"]["conversation"]["params"]["model"], request_string)
                 answer_selected = True
 
             # Bard 等の 他のAPI が利用可能になっていったら ここに入れていく...

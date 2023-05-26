@@ -1,7 +1,10 @@
 import os
 import time
 import subprocess
-import RPi.GPIO as GPIO
+try:
+    import RPi.GPIO as GPIO
+except:
+    from fake_rpi.RPi import GPIO
 from CLOVA_led import IndicatorLed as ind_led
 
 # スイッチが接続されているGPIO番号

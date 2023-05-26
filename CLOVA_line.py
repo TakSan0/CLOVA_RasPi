@@ -8,7 +8,7 @@ import urllib.parse
 import urllib.request
 
 from CLOVA_queue import global_speech_queue
-from CLOVA_config import global_config_sys
+from CLOVA_config import global_config_prov
 
 speech_queue = None
 # ==================================
@@ -101,10 +101,10 @@ class LineSender :
         found_id = ""
         default_id = ""
 
-        for id_inf in global_config_sys.settings["sns"]["line"]["user_id"] :
+        for id_inf in global_config_prov.get_general_config()["sns"]["line"]["user_id"] :
             if (id_inf["name"] == "default" ) :
                 default_id = id_inf["id"]
-            elif (id_inf["callname"] == call_name ) :
+            elif (id_inf["call_name"] == call_name ) :
                 found_id = id_inf["id"]
 
         if (found_id == "") :

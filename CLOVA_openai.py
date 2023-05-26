@@ -1,7 +1,7 @@
 import os
 import openai
 from CLOVA_led import global_led_Ill
-from CLOVA_character import global_character
+from CLOVA_character import global_character_prov
 
 # ==================================
 #         OpenAI APIクラス
@@ -29,7 +29,7 @@ class OpenAiApiControl :
         # 底面 LED をピンクに
         global_led_Ill.set_all_pink()
         print("OpenAI 応答作成中")
-        desc = global_character.get_character_description()
+        desc = global_character_prov.get_character_prompt()
 
         if (self.OPENAI_API_KEY != "") :
             try:

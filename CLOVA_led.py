@@ -1,6 +1,10 @@
 import time
-import RPi.GPIO as GPIO
-import smbus
+try:
+    import RPi.GPIO as GPIO
+    import smbus
+except:
+    from fake_rpi.RPi import GPIO
+    from fake_rpi import smbus
 
 PIN_FRONT_SW = 4
 PIN_BACK_SW_MINUS = 2

@@ -1,10 +1,10 @@
-from CLOVA_config import global_config_sys
-from CLOVA_config import HttpReqSettingHandler
+from CLOVA_config import global_config_prov
+# from CLOVA_config import HttpReqSettingHandler
 from CLOVA_led import global_led_Ill
 from CLOVA_timer import TimerControl
 from CLOVA_switch import SwitchInput
 from CLOVA_volume import global_vol
-from CLOVA_character import global_character
+from CLOVA_character import global_character_prov
 from CLOVA_conversation import Conversation
 from CLOVA_voice import VoiceControl
 from CLOVA_http_server import HttpServer
@@ -16,7 +16,7 @@ def main() :
 
     # HTTPサーバー系のインスタンス作成
     line_svr = HttpServer(8080, HttpReqLineHandler)
-    config_svr = HttpServer(8000, HttpReqSettingHandler)
+    # config_svr = HttpServer(8000, HttpReqSettingHandler)
 
     # LINE送信モジュールのインスタンス
     line_sender = LineSender()
@@ -28,7 +28,7 @@ def main() :
     voice = VoiceControl()
 
     # キー準備
-    char_swich = SwitchInput(SwitchInput.PIN_BACK_SW_BT, global_character.select_next_character)
+    char_swich = SwitchInput(SwitchInput.PIN_BACK_SW_BT, global_character_prov.select_next_character)
     plus_swich = SwitchInput(SwitchInput.PIN_BACK_SW_PLUS, global_vol.vol_up_cb)
     minus_swich = SwitchInput(SwitchInput.PIN_BACK_SW_MINUS, global_vol.vol_down_cb)
 
@@ -38,7 +38,7 @@ def main() :
     #tmr.Start()
 
     # キャラクタ設定
-    global_character.set_character(global_config_sys.settings["character"]["default_sel"])
+    global_character_prov.set_character(global_config_prov.get_general_config()["character"])
 
     # メインループ
     while True :

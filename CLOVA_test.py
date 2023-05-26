@@ -1,7 +1,10 @@
 import sys
 import threading
 import time
-import RPi.GPIO as GPIO
+try:
+    import RPi.GPIO as GPIO
+except:
+    from fake_rpi.RPi import GPIO
 import wave
 import pyaudio as PyAudio
 
@@ -34,7 +37,7 @@ class TestClass :
     # デストラクタ
     def __del__(self) :
         # 現状ログ出すだけ
-        print("Delete <characterSelection> class")
+        print("Delete <TestClass> class")
 
     def task_test_playback(self) :
         voice = VoiceControl()

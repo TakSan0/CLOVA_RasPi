@@ -1,4 +1,7 @@
-import RPi.GPIO as GPIO
+try:
+    import RPi.GPIO as GPIO
+except:
+    from fake_rpi.RPi import GPIO
 
 PIN_FRONT_SW = 4
 PIN_BACK_SW_MINUS = 2
@@ -22,7 +25,7 @@ class GPIOControl :
     def __init__(self) :
         print("Create <GPIOControl> class")
 
-        self.Initialize()
+        self.init()
 
     # デストラクタ
     def __del__(self) :
@@ -30,7 +33,7 @@ class GPIOControl :
         print("Delete <GPIOControl> class")
 
     # 初期化処理
-    def Initialize() :
+    def init() :
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(PIN_BACK_SW_MINUS, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(PIN_BACK_SW_PLUS, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -42,7 +45,7 @@ class GPIOControl :
         GPIO.output(PIN_ILL_LED_ENA, GPIO.LOW)
 
     # 解放処理
-    def Release() :
+    def release() :
         GPIO.cleanup(PIN_BACK_SW_MINUS)
         GPIO.cleanup(PIN_BACK_SW_PLUS)
         GPIO.cleanup(PIN_BACK_SW_BT)
