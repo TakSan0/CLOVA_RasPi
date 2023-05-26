@@ -16,7 +16,7 @@ class CharacterProvider :
         self.read_character_config_file()
 
 
-    # デストラクタnetsh
+    # デストラクタ
     def __del__(self) :
         # 現状ログ出すだけ
         print("Delete <CharacterProvider> class")
