@@ -7,6 +7,10 @@ from typing import Tuple
 #       キャラクタ管理クラス
 # ==================================
 class CharacterProvider :
+    character = None
+    current_character_num = -1
+    character_index = []
+    characters_len = 0
 
     # コンストラクタ
     def __init__(self) :
@@ -30,6 +34,9 @@ class CharacterProvider :
         global_speech_queue.add(select_speech)
 
     def get_character_settings(self):
+        if self.character is None:
+            global_character_prov.set_character(global_config_prov.get_general_config()["character"])
+
         return self.character
 
     # キャラクタの特徴を取得。

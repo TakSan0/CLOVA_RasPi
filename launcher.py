@@ -6,7 +6,7 @@ from clova.io.local.switch import SwitchInput
 from clova.io.local.volume import global_vol
 from clova.config.character import global_character_prov
 from clova.general.conversation import ConversationController
-from clova.general.voice import VoiceControl
+from clova.general.voice import VoiceController
 from clova.io.http.http_server import HttpServer
 from clova.processor.skill.line import LineSkillProvider, HttpReqLineHandler
 
@@ -25,7 +25,7 @@ def main() :
     global_led_Ill.set_all_yellow()
 
     # LEDを使うモジュールにインスタンスをコピー
-    voice = VoiceControl()
+    voice = VoiceController()
 
     # キー準備
     char_swich = SwitchInput(SwitchInput.PIN_BACK_SW_BT, global_character_prov.select_next_character)
@@ -37,18 +37,15 @@ def main() :
     conv.tmr = tmr
     #tmr.Start()
 
-    # キャラクタ設定
-    global_character_prov.set_character(global_config_prov.get_general_config()["character"])
-
     # メインループ
     while True :
 
-        int_exists, speeched_text = conv.check_for_interrupted_voice()
+        int_exists, stt_result = conv.check_for_interrupted_voice()
 
         # 割り込み音声ありの時
         if ( int_exists == True) :
-            if speeched_text != "" :
-                filename = voice.text_2_speech(speeched_text)
+            if stt_result != "" :
+                filename = voice.text_2_speech(stt_result)
                 if (filename != "") :
                     voice.play_audio_file(filename)
                 else :
@@ -62,18 +59,22 @@ def main() :
             record_data = voice.microphone_record()
 
             # テキストに返還
-            speeched_text = voice.speech_2_text(record_data)
-            #speeched_text = speech_to_text_by_google_speech_recognition(record_data)
-            print("発話メッセージ:{}".format(speeched_text))
+            stt_result = voice.speech_2_text(record_data)
+
+            if stt_result is None:
+                print("発話なし")
+                continue
+
+            print("発話メッセージ:{}".format(stt_result))
 
             # 終了ワードチェック
-            if (speeched_text == "終了") or (speeched_text == "終了。") :
+            if (stt_result == "終了") or (stt_result == "終了。") :
                 answered_text = "わかりました。終了します。さようなら。"
                 is_exit = True
 
             else :
                 # 会話モジュールから、問いかけに対する応答を取得
-                answered_text =  conv.get_answer(speeched_text)
+                answered_text =  conv.get_answer(stt_result)
                 is_exit = False
 
             # 応答が空でなかったら再生する。

@@ -3,10 +3,10 @@
 	"apis": {
 		"tts": {
 			"system": null,
-			"params": {}
+			"params": null
 		},
 		"stt": {
-			"system": "GoogleSpeechRecognition",
+			"system": "SpeechRecognitionGoogle",
 			"params": {
 				"language": "ja-JP"
 			}

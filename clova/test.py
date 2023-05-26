@@ -8,7 +8,7 @@ except:
 import wave
 import pyaudio as PyAudio
 
-from clova.general.voice import VoiceControl
+from clova.general.voice import VoiceController
 from clova.general.queue import global_speech_queue
 
 PIN_FRONT_SW = 4
@@ -40,7 +40,7 @@ class TestClass :
         print("Delete <TestClass> class")
 
     def task_test_playback(self) :
-        voice = VoiceControl()
+        voice = VoiceController()
         while(self.is_active) :
             record_data = voice.microphone_record()
             with wave.open(WAV_FILENAME, "wb") as out:

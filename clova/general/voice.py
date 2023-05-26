@@ -4,17 +4,24 @@ import pyaudio
 import wave
 import numpy as np
 import audioop
-import speech_recognition as google_sr
-import requests
-import json
-from google.cloud import speech_v1p1beta1 as speech
-from google.cloud import texttospeech as tts
 from pydub import AudioSegment
 from clova.io.local.led import global_led_Ill
 from clova.config.config import global_config_prov
 from clova.config.character import global_character_prov
 from clova.io.local.volume import global_vol
 from clova.general.queue import global_speech_queue
+
+from typing import Dict, Type
+
+from clova.processor.stt.base_stt import BaseSTTProvider
+from clova.processor.stt.google_cloud_speech import GoogleCloudSpeechSTTProvider
+from clova.processor.stt.speech_recognition_google import GoogleCloudSpeechSTTProvider
+
+from clova.processor.tts.base_tts import BaseTTSProvider
+from clova.processor.tts.google_text_to_speech import GoogleTextToSpeechTTSProvider
+from clova.processor.tts.voice_text import VoiceTextTTSProvider
+from clova.processor.tts.voice_vox import VoiceVoxTTSProvider
+from clova.processor.tts.ai_talk import AITalkTTSProvider
 
 # 音声ファイル設定
 SPEECH_FORMAT = pyaudio.paInt16
@@ -30,7 +37,18 @@ GOOGLE_SPEECH_SIZEOF_CHUNK = int(GOOGLE_SPEECH_RATE / 10)
 # ==================================
 #        音声取得・再生クラス
 # ==================================
-class VoiceControl :
+class VoiceController :
+    STT_MODULES: Dict[str, Type[BaseSTTProvider]] = {
+        "GoogleCloudSpeech": GoogleCloudSpeechSTTProvider,
+        "SpeechRecognitionGoogle": GoogleCloudSpeechSTTProvider
+    }
+    TTS_MODULES: Dict[str, Type[BaseTTSProvider]] = {
+        "GoogleTextToSpeech": GoogleTextToSpeechTTSProvider,
+        "VoiceText": VoiceTextTTSProvider,
+        "VoiceVox": VoiceVoxTTSProvider,
+        "AITalk": AITalkTTSProvider
+    }
+
     # コンストラクタ
     def __init__(self) :
         print("Create <VoiceControl> class")
@@ -45,26 +63,14 @@ class VoiceControl :
         self.speaker_device_index = conf["hardware"]["audio"]["speaker"]["index"]
         print("MiC:NumCh={}, Index={}, Threshold={}, Duration={}, SPK:NumCh={}, Index={}".format(self.mic_num_ch, self.mic_device_index,  self.silent_threshold, self.terminate_silent_duration, self.speaker_num_ch, self.speaker_device_index))#for debug
 
-        # Speech-to-Text API クライアントを作成する
-        try:
-            self._client_speech = speech.SpeechClient()
-        except:
-            pass
+        self.tts_system = global_config_prov.get_general_config()["apis"]["tts"]["system"] or global_character_prov.get_character_settings()["tts"]["system"]
+        self.stt_system = global_config_prov.get_general_config()["apis"]["stt"]["system"]
 
-        # Text-to-Speech API クライアントを作成する
-        try:
-            self._client_tts = tts.TextToSpeechClient()
-        except:
-            pass
+        self.tts_kwargs = global_config_prov.get_general_config()["apis"]["tts"]["params"] or global_character_prov.get_character_settings()["tts"]["params"]
+        self.stt_kwargs = global_config_prov.get_general_config()["apis"]["stt"]["params"]
 
-        # VoiceText のキーを取得
-        self.voice_text_api_key = os.environ["VOICE_TEXT_API_KEY"]
-        # Web版Voice Vox API キーを取得
-        self.web_voicevox_api_key = os.environ["WEB_VOICEVOX_API_KEY"]
-        self.voicevox_custom_api_endpoint = os.environ["VOICEVOX_CUSTOM_API_ENDPOINT"]
-        # ALTalk ユーザー名パスワードを取得
-        self.aitalk_user = os.environ["AITALK_USER"]
-        self.aitalk_password = os.environ["AITALK_PASSWORD"]
+        self.tts = self.TTS_MODULES[self.tts_system]()
+        self.stt = self.STT_MODULES[self.stt_system]()
 
     # デストラクタ
     def __del__(self) :
@@ -124,7 +130,7 @@ class VoiceControl :
             if maxpp_data > maxpp_data_max:
                 maxpp_data_max = maxpp_data
 
-            # 無音スレッショルド未満
+            # 無音しきい値未満
             if maxpp_data < self.silent_threshold:
                 # 無音期間 フレームカウンタをインクリメント
                 silent_frames += 1
@@ -135,7 +141,7 @@ class VoiceControl :
                     # 録音停止
                     break
 
-            # 無音スレッショルド以上
+            # 無音しきい値以上
             else:
                 # 音の入力があったので、無音期間フレームカウンタをクリア
                 silent_frames = 0
@@ -169,42 +175,19 @@ class VoiceControl :
         return b"".join(rec_frames)
 
     # 音声からテキストに変換
-    def speech_2_text(self, record_data) :
+    def speech_2_text(self, audio) :
         # 底面 LED をオレンジに
         global_led_Ill.set_all_orange()
 
-        # 設定値により音声認識(STT)システムを選択する
-        system = global_config_prov.get_general_config()["apis"]["stt"]["system"]
-        if (system == "GoogleCloudSpeech") :
-            speeched_text = self._internal_speech_to_text_GCP(record_data)
-        elif (system == "GoogleSpeechRecognition") :
-            speeched_text = self._internal_speech_to_text_GSR(record_data)
-        else :
-            print("Invalid Speech System for SpeechToText : {}".format(system))
-            speeched_text = ""
-        return speeched_text
+        return self.stt.stt(audio, **self.stt_kwargs)
 
 
     # テキストから音声に変換
-    def text_2_speech(self, text_to_speech) :
+    def text_2_speech(self, text) :
         # 底面 LED を青に
         global_led_Ill.set_all_blue()
 
-        # 設定値により音声合成(TTS)システムを選択する
-        system = global_character_prov.character["tts"]["system"]
-        if (system == "GoogleTextToSpeech") :
-            file_name = self._internal_text_2_speech_GCP(text_to_speech)
-        elif (system == "VoiceText") :
-            file_name = self._internal_text_2_speech_VT(text_to_speech)
-        elif (system == "VoiceVox") :
-            file_name = self._internal_text_2_speech_VV(text_to_speech)
-        elif (system == "AITalk") :
-            file_name = self._internal_text_2_speech_AIT(text_to_speech)
-        else :
-            print("Invalid Speech System for TextToSpeech : {}".format(system))
-            file_name = ""
-
-        return file_name
+        return self.tts.tts(text, **self.tts_kwargs)
 
     # 音声ファイルの再生
     # TODO: pipe stdin to prevent from damaging sd card
@@ -266,259 +249,6 @@ class VoiceControl :
         # PyAudioオブジェクトを終了
         pyaud.terminate()
         time.sleep(0.1)
-
-    # Google-Speech での音声テキスト変換
-    def _internal_speech_to_text_GCP(self, record_data) :
-        print("音声からテキストに変換中(Google Speech)")
-
-        # Speech-to-Text の認識設定
-        config = speech.RecognitionConfig(
-            encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-            sample_rate_hertz=GOOGLE_SPEECH_RATE,
-            language_code=global_config_prov.get_general_config()["apis"]["stt"]["params"]["language"],
-            enable_automatic_punctuation=True,
-        )
-
-        # Speech-to-Text の音声設定
-        speech_audio = speech.RecognitionAudio(content=record_data)
-
-        # Speech-to-Text の認識処理
-        speech_response = self._client_speech.recognize(config=config, audio=speech_audio)
-
-        # 結果取得処理 (JSONから抜き出す)
-        # print(len(speech_response.results)) # デバッグ用
-        if (len(speech_response.results) != 0) :
-            speeched_text = speech_response.results[0].alternatives[0].transcript.strip()
-        else :
-            print("音声取得に失敗")
-            speeched_text = ""
-
-        return speeched_text
-
-    # Google-SpeechRecognition での音声テキスト変換
-    def _internal_speech_to_text_GSR(self, record_data) :
-        print("音声からテキストに変換中(Google Recognition)")
-
-        speeched_text = ""
-
-        # 録音した音声データをGoogle Speech Recognitionでテキストに変換する
-        recognizer = google_sr.Recognizer()
-        audio_data = google_sr.AudioData(record_data, sample_rate=GOOGLE_SPEECH_RATE, sample_width=2)
-
-        try:
-            speeched_text = recognizer.recognize_google(audio_data, language=global_config_prov.get_general_config()["apis"]["stt"]["params"]["language"])
-        except Exception:
-            pass
-
-        return speeched_text
-
-    # Google-Speech でのテキスト音声変換
-    def _internal_text_2_speech_GCP(self, speeched_text) :
-        print("音声合成中(Google TTS)")
-
-        # テキスト入力
-        synthesis_input = tts.SynthesisInput(text=speeched_text)
-
-        # パラメータを読み込み
-        if ( global_character_prov.character["tts"]["params"]["gender"] == "MALE" ) :
-            gender_sel = tts.SsmlVoiceGender.MALE
-        elif ( global_character_prov.character["tts"]["params"]["gender"] == "FEMALE" ) :
-            gender_sel = tts.SsmlVoiceGender.FEMALE
-        elif ( global_character_prov.character["tts"]["params"]["gender"] == "NEUTRAL" ) :
-            gender_sel = tts.SsmlVoiceGender.NEUTRAL
-        else :
-            gender_sel = tts.SsmlVoiceGender.SSML_VOICE_GENDER_UNSPECIFIED
-        pitch_cfg = float(global_character_prov.character["tts"]["params"]["pitch"])
-        rate_cfg = float(global_character_prov.character["tts"]["params"]["rate"])
-
-
-        # 音声合成設定
-        voice_config = tts.VoiceSelectionParams(
-            language_code=global_character_prov.character["tts"]["params"]["language"],
-            ssml_gender=gender_sel,
-            name=global_character_prov.character["tts"]["params"]["name"]
-        )
-
-        # 音声ファイル形式設定
-        audio_config = tts.AudioConfig(
-            audio_encoding=tts.AudioEncoding.LINEAR16, speaking_rate=rate_cfg, pitch = pitch_cfg, sample_rate_hertz = GOOGLE_SPEECH_RATE
-        )
-
-        # 音声合成メイン処理実行
-        response = self._client_tts.synthesize_speech(
-            input=synthesis_input, voice=voice_config, audio_config=audio_config
-        )
-
-        # 音声をファイルに保存
-        with open(WAV_PLAY_FILENAME, "wb") as out:
-            # Write the response to the output file.
-            out.write(response.audio_content)
-            print("ファイル保存完了 ;{}".format(WAV_PLAY_FILENAME))
-        
-        return WAV_PLAY_FILENAME
-
-    # VoiceText WebAPI でのテキスト音声変換
-    def _internal_text_2_speech_VT(self, speeched_text) :
-        print("音声合成中(VoiceText)")
-
-        # 音声合成設定
-        url = "https://api.voicetext.jp/v1/tts"
-        params = {
-            "text": speeched_text,
-            "speaker": global_character_prov.character["tts"]["params"]["name"],
-            "emotion": global_character_prov.character["tts"]["params"]["emotion"]
-        }
-        auth = (self.voice_text_api_key, "")
-        ret = ""
-
-        try:
-            # APIにリクエストを送信してデータを取得
-            response = requests.post(url, auth=auth, data=params)
-
-            # HTTPエラーがあれば例外を発生させる
-            response.raise_for_status()            
-
-            # 音声をファイルに保存
-            with open(WAV_PLAY_FILENAME, "wb") as out:
-                out.write(response.content)
-
-            ret = WAV_PLAY_FILENAME
-
-        except requests.exceptions.RequestException as e:
-            print("リクエストエラー:{}".format(e))
-
-        except IOError as e:
-            print("ファイルの保存エラー:{}".format(e))
-
-        print("ファイル保存完了 ;{}".format(WAV_PLAY_FILENAME))
-
-        return ret
-
-    # VoiceVox WebAPI でのテキスト音声変換
-    def _internal_text_2_speech_VV(self, speeched_text) :
-        print("音声合成中(VoiceVox)")
-
-        if self.voicevox_custom_api_endpoint != "":
-            return self._internal_text_2_speech_VV_engine(speeched_text)
-
-        # 音声合成設定
-        url = "https://api.tts.quest/v3/voicevox/synthesis"
-        params = {
-            "key": self.web_voicevox_api_key,
-            "speaker": global_character_prov.character["tts"]["params"]["name"],
-            "text": speeched_text,
-        }
-        ret = ""
-
-        try:
-            # APIにリクエストを送信してデータを取得
-            res = requests.post(url, data=params)
-
-            # HTTPエラーがあれば例外を発生させる
-            res.raise_for_status()
-            res_json = json.loads(res.text)
-
-            # print("status = '{}'".format(response.status_code))
-            # print("content = '{}'".format(response.content))
-            # print("text = '{}'".format(response.text))
-            if (res_json["success"] == True) :
-
-                while True:
-                    # print("webDownloadUrl = '{}'".format(res_json["wavDownloadUrl"]))
-                    response = requests.get(res_json["wavDownloadUrl"])
-
-                    if (response.status_code == 200) :
-                        break
-
-                    # 404エラーの場合はもう一度やり直す。
-                    elif (response.status_code != 404) :
-                        # 404 以外のHTTPエラーがあれば例外を発生させる
-                        response.raise_for_status()
-                        break
-                    # 少しだけ待ってリトライ
-                    time.sleep(0.5)
-
-                # 音声をファイルに保存
-                with open(WAV_PLAY_FILENAME, "wb") as out:
-                    out.write(response.content)
-
-                ret = WAV_PLAY_FILENAME
-            else :
-                print("NOT success (VoiceVox")
-
-        except requests.exceptions.RequestException as e:
-            print(res.text)
-            print("リクエストエラー:{}".format(e))
-
-        except IOError as e:
-            print(res.text)
-            print("ファイルの保存エラー:{}".format(e))
-
-        print("ファイル保存完了 ;{}".format(WAV_PLAY_FILENAME))
-
-        return ret
-
-    def _internal_text_2_speech_VV_engine(self, speeched_text):
-        # impl of https://github.com/VOICEVOX/voicevox_engine/blob/master/README.md
-        try:
-            phrase = requests.post(self.voicevox_custom_api_endpoint + "/audio_query", params={
-                "speaker": global_character_prov.character["tts"]["params"]["x_voice_vox_id"],
-                "text": speeched_text
-            })
-            phrase.raise_for_status()
-
-            res = requests.post(self.voicevox_custom_api_endpoint + "/synthesis", params={ "speaker": global_character_prov.character["tts"]["params"]["x_voice_vox_id"] }, data=phrase.content)
-            res.raise_for_status()
-
-            with open(WAV_PLAY_FILENAME, mode="wb") as f:
-                f.write(res.content)
-
-            return WAV_PLAY_FILENAME
-        except Exception as e:
-            print(e)
-            return ""
-
-    # AITalk WebAPI でのテキスト音声変換
-    def _internal_text_2_speech_AIT(self, speeched_text) :
-        print("音声合成中(AITalk)")
-
-        # 音声合成設定
-        url = "https://webapi.aitalk.jp/webapi/v5/ttsget.php"
-        params = {
-            "username": self.aitalk_user,
-            "password": self.aitalk_password,
-            "speaker_name": global_character_prov.character["tts"]["params"]["name"],
-            "ext": "wav",
-            "speed": global_character_prov.character["tts"]["params"]["speed"],
-            "pitch": global_character_prov.character["tts"]["params"]["pitch"],
-            "text": speeched_text
-        }
-        ret = ""
-
-        try:
-            # APIにリクエストを送信してデータを取得
-            response = requests.get(url, data=params)
-
-            print("URL:{} params:{}".format(url, params))
-
-            # HTTPエラーがあれば例外を発生させる
-            response.raise_for_status()            
-
-            # 音声をファイルに保存
-            with open(WAV_PLAY_FILENAME, "wb") as out:
-                out.write(response.content)
-
-            ret = WAV_PLAY_FILENAME
-
-        except requests.exceptions.RequestException as e:
-            print("リクエストエラー:{}".format(e))
-
-        except IOError as e:
-            print("ファイルの保存エラー:{}".format(e))
-
-        print("ファイル保存完了 ;{}".format(WAV_PLAY_FILENAME))
-
-        return ret
 
 # ==================================
 #       本クラスのテスト用処理
