@@ -3,7 +3,7 @@ import time
 import datetime
 import re
 
-from CLOVA_queue import global_speech_queue
+from clova.general.queue import global_speech_queue
 
 # ==================================
 #         タイマー管理クラス

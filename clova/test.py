@@ -8,8 +8,8 @@ except:
 import wave
 import pyaudio as PyAudio
 
-from CLOVA_voice import VoiceControl
-from CLOVA_queue import global_speech_queue
+from clova.general.voice import VoiceControl
+from clova.general.queue import global_speech_queue
 
 PIN_FRONT_SW = 4
 PIN_BACK_SW_MINUS = 2

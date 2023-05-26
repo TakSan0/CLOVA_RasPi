@@ -1,7 +1,7 @@
 import time
 import socketserver
 import threading as th
-from CLOVA_line import HttpReqLineHandler
+from clova.processor.skill.line import HttpReqLineHandler
 
 # ==================================
 #       HTTPサーバークラス

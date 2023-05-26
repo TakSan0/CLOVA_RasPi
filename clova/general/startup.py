@@ -5,7 +5,7 @@ try:
     import RPi.GPIO as GPIO
 except:
     from fake_rpi.RPi import GPIO
-from CLOVA_led import IndicatorLed as ind_led
+from clova.io.local.led import IndicatorLed as ind_led
 
 # スイッチが接続されているGPIO番号
 PIN_FRONT_SW = 4

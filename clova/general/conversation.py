@@ -1,12 +1,12 @@
-from CLOVA_openai import OpenAiApiControl
-from CLOVA_datetime import DateTime
-from CLOVA_timer import TimerControl
-from CLOVA_news import NewsReader
-from CLOVA_weather import WeatherGetter
-from CLOVA_line import LineSender
+from clova.processor.conversation.openai import OpenAiApiControl
+from clova.general.datetime import DateTime
+from clova.processor.skill.timer import TimerControl
+from clova.processor.skill.news import NewsReader
+from clova.processor.skill.weather import WeatherGetter
+from clova.processor.skill.line import LineSender
 
-from CLOVA_queue import global_speech_queue
-from CLOVA_config import global_config_prov
+from clova.general.queue import global_speech_queue
+from clova.config.config import global_config_prov
 
 # ==================================
 #          会話制御クラス

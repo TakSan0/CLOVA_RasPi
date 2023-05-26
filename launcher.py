@@ -1,14 +1,14 @@
-from CLOVA_config import global_config_prov
+from clova.config.config import global_config_prov
 # from CLOVA_config import HttpReqSettingHandler
-from CLOVA_led import global_led_Ill
-from CLOVA_timer import TimerControl
-from CLOVA_switch import SwitchInput
-from CLOVA_volume import global_vol
-from CLOVA_character import global_character_prov
-from CLOVA_conversation import Conversation
-from CLOVA_voice import VoiceControl
-from CLOVA_http_server import HttpServer
-from CLOVA_line import LineSender, HttpReqLineHandler
+from clova.io.local.led import global_led_Ill
+from clova.processor.skill.timer import TimerControl
+from clova.io.local.switch import SwitchInput
+from clova.io.local.volume import global_vol
+from clova.config.character import global_character_prov
+from clova.general.conversation import Conversation
+from clova.general.voice import VoiceControl
+from clova.io.http.http_server import HttpServer
+from clova.processor.skill.line import LineSender, HttpReqLineHandler
 
 def main() :
     # 会話モジュールのインスタンス作成

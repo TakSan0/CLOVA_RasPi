@@ -1,5 +1,4 @@
 TODO:
-folder-ize
-Make abstract base class of 'Skill' for consistency, also class names
+Make abstract base class of 'Skill', 'Conversation', 'Voice' for consistency, also class names
 Do not use /tmp; use stdin / stdout
 fix README

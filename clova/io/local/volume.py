@@ -1,4 +1,4 @@
-from CLOVA_queue import global_speech_queue
+from clova.general.queue import global_speech_queue
 
 # ==================================
 #       ボリューム制御クラス

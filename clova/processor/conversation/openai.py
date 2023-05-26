@@ -1,7 +1,7 @@
 import os
 import openai
-from CLOVA_led import global_led_Ill
-from CLOVA_character import global_character_prov
+from clova.io.local.led import global_led_Ill
+from clova.config.character import global_character_prov
 
 # ==================================
 #         OpenAI APIクラス

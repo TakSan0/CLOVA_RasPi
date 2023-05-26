@@ -7,8 +7,8 @@ import requests
 import urllib.parse
 import urllib.request
 
-from CLOVA_queue import global_speech_queue
-from CLOVA_config import global_config_prov
+from clova.general.queue import global_speech_queue
+from clova.config.config import global_config_prov
 
 speech_queue = None
 # ==================================

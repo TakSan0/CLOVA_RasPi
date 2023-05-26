@@ -10,11 +10,11 @@ import json
 from google.cloud import speech_v1p1beta1 as speech
 from google.cloud import texttospeech as tts
 from pydub import AudioSegment
-from CLOVA_led import global_led_Ill
-from CLOVA_config import global_config_prov
-from CLOVA_character import global_character_prov
-from CLOVA_volume import global_vol
-from CLOVA_queue import global_speech_queue
+from clova.io.local.led import global_led_Ill
+from clova.config.config import global_config_prov
+from clova.config.character import global_character_prov
+from clova.io.local.volume import global_vol
+from clova.general.queue import global_speech_queue
 
 # 音声ファイル設定
 SPEECH_FORMAT = pyaudio.paInt16
