@@ -64,7 +64,9 @@ class ConversationController :
         # どれにも該当しないときには AI に任せる。
         system = global_config_prov.get_general_config()["apis"]["conversation"]["system"]
         kwargs = global_config_prov.get_general_config()["apis"]["conversation"]["params"]
-        return self.CONVERSATION_MODULES[system].get_answer(prompt, **kwargs)
+        result = self.CONVERSATION_MODULES[system].get_answer(prompt, **kwargs)
+        if result:
+            return result
 
         # AI が利用不可の場合は謝るしかない…
         return "すみません。質問が理解できませんでした。"
