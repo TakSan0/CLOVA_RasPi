@@ -2,6 +2,8 @@ import re
 import requests
 import datetime
 
+from clova.processor.skill.base_skill import BaseSkillProvider
+
 # 大阪市のコード
 code = "270000"
 
@@ -78,7 +80,7 @@ area_codes = {
     "八重山": "474000",
 }
 
-class WeatherGetter:
+class WeatherSkillProvider(BaseSkillProvider) :
     # コンストラクタ
     def __init__(self):
         # 現状ログ出すだけ
@@ -89,7 +91,7 @@ class WeatherGetter:
         # 現状ログ出すだけ
         print("Delete <WeatherGetter> class")
 
-    # 天気 質問に答える。天気の問い合わせではなければ 空 の文字列を返す
+    # 天気 質問に答える。天気の問い合わせではなければ None を返す
     def try_get_answer(self, request_text):
         if ( ( "天気を教えて" in request_text) or ( "天気は" in request_text) ) :
             # 天気情報を取得する日付のデフォルト値(今日の日付文字列)
@@ -146,8 +148,7 @@ class WeatherGetter:
         else:
             # 該当がない場合は空で返信
             print("No Keyword for Weather")
-            self._news_count = 0
-            return ""
+            return None
 
     def print_areas(self) :
         response = requests.get("https://www.jma.go.jp/bosai/common/const/area.json")
@@ -163,7 +164,7 @@ class WeatherGetter:
 #       本クラスのテスト用処理
 # ==================================
 def module_test() :
-    weather = WeatherGetter()
+    weather = WeatherSkillProvider()
     #weather.PrintAreas()
     weather.try_get_answer("明日の東京の天気を教えて")
 

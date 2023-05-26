@@ -1,10 +1,11 @@
 import datetime
+from clova.processor.skill.base_skill import BaseSkillProvider
 
 # ==================================
 #             日時クラス
 # ==================================
 # 日時クラス
-class DateTime :
+class DateTimeSkillProvider(BaseSkillProvider) :
     weekday_dict = {"Mon": "月", "Tue": "火", "Wed": "水", "Thu": "木", "Fri": "金", "Sat": "土", "Sun": "日"}
 
     # コンストラクタ
@@ -17,7 +18,7 @@ class DateTime :
         # 現状ログ出すだけ
         print("Delete <DateTime> class")
 
-    # 日時 質問に答える。日時の問い合わせではなければ 空 の文字列を返す
+    # 日時 質問に答える。日時の問い合わせではなければ None を返す
     def try_get_answer(self, request_string) :
         if ("今" in request_string ) and ("何" in request_string) and ( ( "日" in request_string) or ( "時" in request_string) ) :
             if ("今何時" in request_string) :
@@ -33,7 +34,7 @@ class DateTime :
                 return answer_text
 
         # 該当がない場合は空で返信
-        return ("")
+        return None
 
 # ==================================
 #       本クラスのテスト用処理

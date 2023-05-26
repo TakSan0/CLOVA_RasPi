@@ -3,6 +3,8 @@ import requests
 import time
 from bs4 import BeautifulSoup
 
+from clova.processor.skill.base_skill import BaseSkillProvider
+
 CATEGORY_URL_TABLE = {
     "トップ": "https://news.yahoo.co.jp/",
     "国内": "https://news.yahoo.co.jp/categories/domestic",
@@ -22,7 +24,7 @@ NEWS_URL_STRING = "https://news.yahoo.co.jp/"
 # ==================================
 #       ニュースリーダークラス
 # ==================================
-class NewsReader :
+class NewsSkillProvider(BaseSkillProvider) :
     # コンストラクタ
     def __init__(self) :
         print("Create <NewsReader> class")
@@ -33,7 +35,7 @@ class NewsReader :
         # 現状ログ出すだけ
         print("Delete <NewsReader> class")
 
-    # ニュース 質問に答える。ニュースの問い合わせではなければ 空 の文字列を返す
+    # ニュース 質問に答える。ニュースの問い合わせではなければ None を返す
     def try_get_answer(self, request_text) :
         # 前回がニュースで無ければ
         if (self._news_count == 0) :
@@ -68,12 +70,12 @@ class NewsReader :
                     answer_text = "ニュースのカテゴリーを認識できませんでした。"
                     print("No Category for NEWS")
                     self._news_count = 0
-                    return ""
+                    return None
             else:
                 # 該当がない場合は空で返信
                 print("No Keyword for NEWS")
                 self._news_count = 0
-                return ""
+                return None
         # 前回がニュースであれば番号を選択する
         else :
             if ( ( "終わり" in request_text ) or ( "おわり" in request_text ) ) :
@@ -118,7 +120,7 @@ class NewsReader :
 #       本クラスのテスト用処理
 # ==================================
 def module_test() :
-    news = NewsReader()
+    news = NewsSkillProvider()
     news_text = news.try_get_answer("国際ニュースを教えて")
     print(news_text)
     time.sleep(5)

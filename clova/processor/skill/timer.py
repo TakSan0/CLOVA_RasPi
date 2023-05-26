@@ -5,11 +5,13 @@ import re
 
 from clova.general.queue import global_speech_queue
 
+from clova.processor.skill.base_skill import BaseSkillProvider
+
 # ==================================
 #         タイマー管理クラス
 # ==================================
 # タイマー管理クラス
-class TimerControl :
+class TimerSkillProvider(BaseSkillProvider) :
     # コンストラクタ
     def __init__(self) :
         # 現状ログ出すだけ
@@ -84,9 +86,9 @@ class TimerControl :
                     #self._is_timer_set = True #??
                     return answer_text
                 else :
-                    return ""
+                    return None
             else :
-                return ""
+                return None
         else :
             if ("わかりました" in request_text ) or ("了解" in request_text ) or ("止めて" in request_text ) :
                 answer_text = "タイマ通知を終了します。"
@@ -99,7 +101,7 @@ class TimerControl :
                 #answer_text = "{} 経ちました。".format(self._duration)
                 #global_speech_queue.AddToQueue(answer_text)
 
-                answer_text = "終了待ちです。";
+                answer_text = "終了待ちです。"
                 print(answer_text)
                 return answer_text
 
@@ -125,13 +127,13 @@ class TimerControl :
 #       本クラスのテスト用処理
 # ==================================
 def module_test2() :
-    tmr = TimerControl()
+    tmr = TimerSkillProvider()
     #seconds = tmr.ParseTime("3時間40分59秒後")
     seconds = tmr.parse_time("1分10秒後")
     print(seconds)
 
 def module_test() :
-    tmr = TimerControl()
+    tmr = TimerSkillProvider()
     tmr.try_get_answer("1分10秒後に知らせて")
 
     test_event = th.Event()

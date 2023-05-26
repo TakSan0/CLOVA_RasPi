@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Union
 
 class BaseConversationProvider(ABC):
     @abstractmethod
@@ -6,5 +7,5 @@ class BaseConversationProvider(ABC):
         pass
 
     @abstractmethod
-    def get_answer(self, prompt, **kwargs) -> str | None:
+    def get_answer(self, prompt, **kwargs) -> Union[str, None]:
         pass

@@ -1,14 +1,14 @@
 from clova.config.config import global_config_prov
 # from CLOVA_config import HttpReqSettingHandler
 from clova.io.local.led import global_led_Ill
-from clova.processor.skill.timer import TimerControl
+from clova.processor.skill.timer import TimerSkillProvider
 from clova.io.local.switch import SwitchInput
 from clova.io.local.volume import global_vol
 from clova.config.character import global_character_prov
 from clova.general.conversation import ConversationController
 from clova.general.voice import VoiceControl
 from clova.io.http.http_server import HttpServer
-from clova.processor.skill.line import LineSender, HttpReqLineHandler
+from clova.processor.skill.line import LineSkillProvider, HttpReqLineHandler
 
 def main() :
     # 会話モジュールのインスタンス作成
@@ -19,7 +19,7 @@ def main() :
     # config_svr = HttpServer(8000, HttpReqSettingHandler)
 
     # LINE送信モジュールのインスタンス
-    line_sender = LineSender()
+    line_sender = LineSkillProvider()
 
     # 底面 LED を黄色に
     global_led_Ill.set_all_yellow()
@@ -33,7 +33,7 @@ def main() :
     minus_swich = SwitchInput(SwitchInput.PIN_BACK_SW_MINUS, global_vol.vol_down_cb)
 
     # タイマ準備
-    tmr = TimerControl()
+    tmr = TimerSkillProvider()
     conv.tmr = tmr
     #tmr.Start()
 

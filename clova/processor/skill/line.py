@@ -10,11 +10,13 @@ import urllib.request
 from clova.general.queue import global_speech_queue
 from clova.config.config import global_config_prov
 
+from clova.processor.skill.base_skill import BaseSkillProvider
+
 speech_queue = None
 # ==================================
 #           LINE受信クラス
 # ==================================
-class LineReciever :
+class LineReceiver :
     # コンストラクタ
     def __init__(self) :
         # 現状ログ出すだけ
@@ -66,7 +68,7 @@ class LineReciever :
 # ==================================
 #           LINE送信クラス
 # ==================================
-class LineSender :
+class LineSkillProvider(BaseSkillProvider) :
     POST_URL = "https://api.line.me/v2/bot/message/push"
     request_header = {"Content-Type": "application/json",  "Authorization": "Bearer channel_access_token"}
     request_body = {"to": "user ID", "messages": [{"type": "text", "text": "Message to send" }]}
@@ -118,8 +120,7 @@ class LineSender :
             name_str = request_text.split("に")[0]
 
             # 正規表現パターンを定義
-            # TODO: check `U+3000` is correct or not; probably not right
-            pattern = r"^(?P<name_str>.+?)[ 　]*に[ 　]*(?P<message>.+?)\s*([と|って]+[ 　]*[ライン|LINE]+[ 　]*[して|を送って|送って|送信して]+)[。]*$"
+            pattern = r"^(?P<name_str>.+?)[ ]*に[ ]*(?P<message>.+?)\s*([と|って]+[ ]*[ライン|LINE]+[ ]*[して|を送って|送って|送信して]+)[。]*$"
 
             # 正規表現によるマッチング
             match = re.match(pattern, request_text)
@@ -147,16 +148,15 @@ class LineSender :
 
         else:
             # 該当がない場合は空で返信
-            print("No Keyword for Weather")
-            self._news_count = 0
-            return ""
+            print("No keyword for skill Line")
+            return None
 
 
 # ==================================
 #      LINE HTTPハンドラクラス
 # ==================================
 class HttpReqLineHandler(http.server.BaseHTTPRequestHandler) :
-    line_recv = LineReciever()
+    line_recv = LineReceiver()
 
     def do_POST(self):
         body = self.rfile.read( int(self.headers.get("Content-Length") ) )
@@ -169,7 +169,7 @@ class HttpReqLineHandler(http.server.BaseHTTPRequestHandler) :
 # ==================================
 def module_test() :
     # APIキー類の読み込み
-    sender = LineSender()
+    sender = LineSkillProvider()
     ret = sender.try_get_answer("クローバに おはようございます！ って LINE して。")
     print(ret)
 
