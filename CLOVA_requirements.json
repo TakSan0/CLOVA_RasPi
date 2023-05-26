@@ -37,6 +37,11 @@
             "requires": [
                 ["OPENAI_API_KEY"]
             ]
+        },
+        "Bard": {
+            "requires": [
+                ["BARD_PSID"]
+            ]
         }
     }
 }

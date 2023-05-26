@@ -12,6 +12,10 @@
 			}
 		},
 		"conversation": {
+			"system": "Bard",
+			"params": {}
+		},
+		"__conversation_example_chatgpt": {
 			"system": "OpenAI-ChatGPT",
 			"params": {
 				"model": "gpt-3.5-turbo"

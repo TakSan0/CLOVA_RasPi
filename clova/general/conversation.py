@@ -1,5 +1,6 @@
 from clova.processor.conversation.base_conversation import BaseConversationProvider
 from clova.processor.conversation.chatgpt import OpenAIChatGPTConversationProvider
+from clova.processor.conversation.bard import BardConversationProvider
 
 from clova.processor.skill.base_skill import BaseSkillProvider
 from clova.processor.skill.timer import TimerSkillProvider
@@ -11,14 +12,15 @@ from clova.processor.skill.datetime import DateTimeSkillProvider
 from clova.general.queue import global_speech_queue
 from clova.config.config import global_config_prov
 
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Type
 
 # ==================================
 #          会話制御クラス
 # ==================================
 class ConversationController :
-    CONVERSATION_MODULES: Dict[str, BaseConversationProvider] = {
-        "OpenAI-ChatGPT": OpenAIChatGPTConversationProvider()
+    CONVERSATION_MODULES: Dict[str, Type[BaseConversationProvider]] = {
+        "OpenAI-ChatGPT": OpenAIChatGPTConversationProvider,
+        "Bard": BardConversationProvider
     }
     SKILL_MODULES: Tuple[BaseSkillProvider] = [
         TimerSkillProvider(), NewsSkillProvider(), WeatherSkillProvider(), LineSkillProvider(), DateTimeSkillProvider()
@@ -27,6 +29,8 @@ class ConversationController :
     # コンストラクタ
     def __init__(self) :
         print("Create <ConversationController> class")
+        self.system = global_config_prov.get_general_config()["apis"]["conversation"]["system"]
+        self.provider = self.CONVERSATION_MODULES[self.system]()
 
     # デストラクタ
     def __del__(self) :
@@ -62,9 +66,8 @@ class ConversationController :
                 return result
 
         # どれにも該当しないときには AI に任せる。
-        system = global_config_prov.get_general_config()["apis"]["conversation"]["system"]
         kwargs = global_config_prov.get_general_config()["apis"]["conversation"]["params"]
-        result = self.CONVERSATION_MODULES[system].get_answer(prompt, **kwargs)
+        result = self.provider.get_answer(prompt, **kwargs)
         if result:
             return result
 

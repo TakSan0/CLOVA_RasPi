@@ -2,9 +2,10 @@ pyaudio
 SpeechRecognition
 openai
 google-api-python-client
-google-cloud-speech==2.19.0 # TODO: update
+google-cloud-speech==2.19.0
 google-cloud-texttospeech==2.14.1
 grpcio
 python-voicetext
 pydub
 python-dotenv
+bardapi
