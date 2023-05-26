@@ -5,14 +5,14 @@ from clova.processor.skill.timer import TimerControl
 from clova.io.local.switch import SwitchInput
 from clova.io.local.volume import global_vol
 from clova.config.character import global_character_prov
-from clova.general.conversation import Conversation
+from clova.general.conversation import ConversationController
 from clova.general.voice import VoiceControl
 from clova.io.http.http_server import HttpServer
 from clova.processor.skill.line import LineSender, HttpReqLineHandler
 
 def main() :
     # 会話モジュールのインスタンス作成
-    conv = Conversation()
+    conv = ConversationController()
 
     # HTTPサーバー系のインスタンス作成
     line_svr = HttpServer(8080, HttpReqLineHandler)

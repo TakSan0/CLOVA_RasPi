@@ -2,28 +2,29 @@ import os
 import openai
 from clova.io.local.led import global_led_Ill
 from clova.config.character import global_character_prov
+from clova.processor.conversation.base_conversation import BaseConversationProvider
 
 # ==================================
 #         OpenAI APIクラス
 # ==================================
-class OpenAiApiControl :
-    OPENAI_character_CFG = "あなたはサービス終了で使えなくなったクローバの後を次ぎました。"
+class OpenAIChatGPTConversationProvider(BaseConversationProvider) :
+    OPENAI_CHARACTER_CONFIG = "あなたはサービス終了で使えなくなったクローバの後を次ぎました。"
 
     # コンストラクタ
     def __init__(self) :
         self.OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
-        self.ser_character_setting("")
-        print("Create <OpenaiApiControl> class")
+        self.set_persona("")
+        print("Create <OpenAIChatGPTConversationProvider> class")
 
     # デストラクタ
     def __del__(self) :
         # 現状ログ出すだけ
-        print("Delete <OpenaiApiControl> class")
+        print("Delete <OpenAIChatGPTConversationProvider> class")
 
-    def ser_character_setting(self, setting_str) :
-        self._char_setting_str = self.OPENAI_character_CFG + setting_str
+    def set_persona(self, prompt) :
+        self._char_setting_str = self.OPENAI_CHARACTER_CONFIG + prompt
 
-    def get_answer(self, model_name, prompt) :
+    def get_answer(self, prompt, **kwargs) :
         openai.api_key = self.OPENAI_API_KEY
 
         # 底面 LED をピンクに
@@ -35,7 +36,7 @@ class OpenAiApiControl :
             try:
 
                 ai_response = openai.ChatCompletion.create(
-                    model=model_name,
+                    model=kwargs["model"],
                     messages=[
                         {"role": "system", "content":  self._char_setting_str + desc },
                         {"role": "user", "content": prompt},
@@ -46,28 +47,28 @@ class OpenAiApiControl :
 
                 #print(len(ai_response))
                 if (len(ai_response) != 0) :
-                    answer_text = ai_response["choices"][0]["message"]["content"]
+                    result = ai_response["choices"][0]["message"]["content"]
                 else :
                     print("AIからの応答が空でした。")
-                    answer_text = ""
+                    result = None
 
             except openai.error.RateLimitError:
-                answer_text = "OpenAIエラー：APIクオータ制限に達しました。しばらく待ってから再度お試しください。改善しない場合は、月間使用リミットに到達したか無料枠期限切れの可能性もあります。"
+                result = "OpenAIエラー：APIクオータ制限に達しました。しばらく待ってから再度お試しください。改善しない場合は、月間使用リミットに到達したか無料枠期限切れの可能性もあります。"
             except openai.error.AuthenticationError:
-                answer_text = "OpenAIエラー：Open AI APIキーが不正です。"
+                result = "OpenAIエラー：Open AI APIキーが不正です。"
             except openai.error.APIConnectionError:
-                answer_text = "OpenAIエラー：Open AI APIに接続できませんでした。"
+                result = "OpenAIエラー：Open AI APIに接続できませんでした。"
             except openai.error.ServiceUnavailableError:
-                answer_text = "OpenAIエラー：Open AI サービス無効エラーです。"
+                result = "OpenAIエラー：Open AI サービス無効エラーです。"
             except openai.error.OpenAIError as e:
-                answer_text = "OpenAIエラー：Open AI APIエラーが発生しました： {}".format(e)
+                result = "OpenAIエラー：Open AI APIエラーが発生しました： {}".format(e)
             except Exception as e:
-                answer_text = "不明なエラーが発生しました： {}".format(e)
+                result = "不明なエラーが発生しました： {}".format(e)
         else :
-            answer_text = "Open AI APIキーが設定されていないため利用できません。先に APIキーを取得して設定してください。"
+            result = "Open AI APIキーが設定されていないため利用できません。先に APIキーを取得して設定してください。"
 
-        print(answer_text)
-        return answer_text
+        print(result)
+        return result
 
 # ==================================
 #       本クラスのテスト用処理

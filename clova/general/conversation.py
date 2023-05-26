@@ -1,4 +1,3 @@
-from clova.processor.conversation.openai import OpenAiApiControl
 from clova.general.datetime import DateTime
 from clova.processor.skill.timer import TimerControl
 from clova.processor.skill.news import NewsReader
@@ -8,26 +7,34 @@ from clova.processor.skill.line import LineSender
 from clova.general.queue import global_speech_queue
 from clova.config.config import global_config_prov
 
+from clova.processor.conversation.base_conversation import BaseConversationProvider
+from clova.processor.conversation.chatgpt import OpenAIChatGPTConversationProvider
+
+from typing import Dict
+
 # ==================================
 #          会話制御クラス
 # ==================================
-class Conversation :
+class ConversationController :
+    CONVERSATION_MODULES: Dict[str, BaseConversationProvider] = {
+        "OpenAI-ChatGPT": OpenAIChatGPTConversationProvider()
+    }
+
     # コンストラクタ
     def __init__(self) :
-        print("Create <Conversation> class")
+        print("Create <ConversationController> class")
 
         self.datetime = DateTime()
         self.tmr = TimerControl()
-        self.news = NewsReader();
+        self.news = NewsReader()
         self.weather = WeatherGetter()
-        self.openai = OpenAiApiControl()
         self.line = LineSender()
 
 
     # デストラクタ
     def __del__(self) :
         # 現状ログ出すだけ
-        print("Delete <Conversation> class")
+        print("Delete <ConversationController> class")
 
     # 音声以外での待ち処理
     def check_for_interrupted_voice(self) :
@@ -42,63 +49,59 @@ class Conversation :
         return ret, speech_text
 
     # 問いかけに答える
-    def get_answer(self, request_string) :
+    def get_answer(self, prompt) :
         answer_text = ""
         answer_selected = False
 
         # 無言なら無応答
-        if (request_string == "") :
+        if (prompt == "") :
             answer_text = ""
             answer_selected = True
 
         # タイマーの設定
         if (answer_selected == False) :
-            answer_text = self.tmr.try_get_answer(request_string)
+            answer_text = self.tmr.try_get_answer(prompt)
             if ( answer_text != "" ) :
                 answer_selected = True
 
         # 名前に応答
         if (answer_selected == False) :
-            if ( (request_string == "ねえクローバー") or (request_string == "ねえクローバ") ) :
+            if ( (prompt == "ねえクローバー") or (prompt == "ねえクローバ") ) :
                 answer_text = "はい。何でしょう。"
                 answer_selected = True
 
         # 日時応答
         if (answer_selected == False) :
-            answer_text = self.datetime.try_get_answer(request_string)
+            answer_text = self.datetime.try_get_answer(prompt)
             if ( answer_text != "" ) :
                 answer_selected = True
 
         # ニュース応答
         if (answer_selected == False) :
-            answer_text = self.news.try_get_answer(request_string)
+            answer_text = self.news.try_get_answer(prompt)
             if ( answer_text != "" ) :
                 answer_selected = True
 
         # 天気応答
         if (answer_selected == False) :
-            answer_text = self.weather.try_get_answer(request_string)
+            answer_text = self.weather.try_get_answer(prompt)
             if ( answer_text != "" ) :
                 answer_selected = True
 
         # LINE送信応答
         if (answer_selected == False) :
-            answer_text = self.line.try_get_answer(request_string)
+            answer_text = self.line.try_get_answer(prompt)
             if ( answer_text != "" ) :
                 answer_selected = True
 
         # どれにも該当しないときには AI に任せる。
         if (answer_selected == False ) :
-
-            if ( global_config_prov.get_general_config()["apis"]["conversation"]["system"] == "OpenAI-ChatGPT" ) :
-                answer_text = self.openai.get_answer(global_config_prov.get_general_config()["apis"]["conversation"]["params"]["model"], request_string)
-                answer_selected = True
-
-            # Bard 等の 他のAPI が利用可能になっていったら ここに入れていく...
-            #elif () :
+            system = global_config_prov.get_general_config()["apis"]["conversation"]["system"]
+            kwargs = global_config_prov.get_general_config()["apis"]["conversation"]["params"]
+            answer_text = self.CONVERSATION_MODULES[system].get_answer(prompt, **kwargs)
 
             # AI が利用不可の場合は
-            else :
+            if answer_text is None :
                 # 謝るしかない…
                 answer_text = "すみません。質問が理解できませんでした。"
                 answer_selected = True
