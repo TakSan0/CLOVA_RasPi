@@ -30,6 +30,9 @@ class SpeechQueue :
     def get(self):
         return self._queue.popleft()
 
+    def clear(self):
+        self._queue.clear()
+
     def __len__(self):
         return len(self._queue)
 

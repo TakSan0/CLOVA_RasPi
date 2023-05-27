@@ -1,4 +1,5 @@
 import sys
+import os
 import threading
 import time
 try:
@@ -7,6 +8,8 @@ except:
     from fake_rpi.RPi import GPIO
 import wave
 import pyaudio as PyAudio
+
+sys.path.append(os.getcwd())
 
 from clova.general.voice import VoiceController
 from clova.general.queue import global_speech_queue
@@ -41,6 +44,7 @@ class TestClass :
 
     def task_test_playback(self) :
         voice = VoiceController()
+        global_speech_queue.clear()
         while(self.is_active) :
             record_data = voice.microphone_record()
             with wave.open(WAV_FILENAME, "wb") as out:
@@ -187,9 +191,7 @@ def module_test() :
 
             test.is_active = True
             gpio_test_thread = threading.Thread(target = test.task_test_gpio, args = (), name = "GpioTestTask", daemon = True)
-            pb_test_thread = threading.Thread(target = test.task_test_playback, args = (), name = "GpioTestTask", daemon = True)
             gpio_test_thread.start()
-            pb_test_thread.start()
 
             input()
 
@@ -199,10 +201,25 @@ def module_test() :
             print("Exit")
             time.sleep(1)
             gpio_test_thread.join()
+
+        # 録音・再生
+        elif (sys.argv[1] == "playback_test") :
+            print("Ready! Press any switch to test or press [Enter] key to exit")
+
+            test.is_active = True
+            pb_test_thread = threading.Thread(target = test.task_test_playback, args = (), name = "GpioTestTask", daemon = True)
+            pb_test_thread.start()
+
+            input()
+
+            time.sleep(1)
+            test.is_active = False
+            print("Exit")
+            time.sleep(1)
             pb_test_thread.join()
 
         # インデックス値のスキャン
-        elif (sys.argv[1] == "get_indecies") :
+        elif (sys.argv[1] == "get_indexes") :
             test.scan_indexes()
 
         # マイクの最低音量調整
@@ -212,14 +229,13 @@ def module_test() :
         # それ以外(不正)の場合
         else :
             if (len(sys.argv) != 2) :
-                print("No test type specified{}".format(len(sys.argv)))
+                print("No test type specified")
             else :
-                print("Invalid test type :'{}' ".format(sys.argv[1]))
+                print("Invalid test type: '{}' ".format(sys.argv[1]))
 
     # ヘルプ表示
     else :
-        print("Usage> python CLOVA_test.py [test type]")
-        print("  [test type] : hw_test / get_indecies / adjust_mic")
+        print("Usage> python {} [ hw_test | get_indexes | adjust_mic ]".format(sys.argv[0]))
 
 # ==================================
 # 本モジュールを直接呼出した時の処理
