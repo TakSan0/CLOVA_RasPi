@@ -32,10 +32,6 @@ class AITalkTTSProvider(BaseTTSProvider):
             # HTTPエラーがあれば例外を発生させる
             response.raise_for_status()            
 
-            # 音声をファイルに保存
-            with open(self.WAV_PLAY_FILENAME, "wb") as out:
-                out.write(response.content)
-
             return response.content
 
         except requests.exceptions.RequestException as e:

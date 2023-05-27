@@ -22,7 +22,6 @@ class VoiceVoxTTSProvider(BaseTTSProvider):
             "speaker": kwargs["name"],
             "text": text,
         }
-        ret = None
 
         try:
             # APIにリクエストを送信してデータを取得
@@ -64,9 +63,7 @@ class VoiceVoxTTSProvider(BaseTTSProvider):
             print(res.text)
             print("ファイルの保存エラー:{}".format(e))
 
-        print("ファイル保存完了:{}".format(self.WAV_PLAY_FILENAME))
-
-        return ret
+        return None
 
     def _tts_engine(self, text, **kwargs):
         # impl of https://github.com/VOICEVOX/voicevox_engine/blob/master/README.md

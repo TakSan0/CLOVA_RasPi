@@ -33,6 +33,4 @@ class VoiceTextTTSProvider(BaseTTSProvider):
         except IOError as e:
             print("ファイルの保存エラー:{}".format(e))
 
-        print("ファイル保存完了 ;{}".format(self.WAV_PLAY_FILENAME))
-
         return None
