@@ -27,8 +27,6 @@ class OpenAIChatGPTConversationProvider(BaseConversationProvider) :
     def get_answer(self, prompt, **kwargs) :
         openai.api_key = self.OPENAI_API_KEY
 
-        # 底面 LED をピンクに
-        global_led_Ill.set_all_pink()
         print("OpenAI 応答作成中")
         desc = global_character_prov.get_character_prompt()
 

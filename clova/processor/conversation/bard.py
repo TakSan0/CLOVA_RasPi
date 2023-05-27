@@ -26,8 +26,6 @@ class BardConversationProvider(BaseConversationProvider) :
         self._char_setting_str = self.OPENAI_CHARACTER_CONFIG + prompt
 
     def get_answer(self, prompt, **kwargs) :
-        # 底面 LED をピンクに
-        global_led_Ill.set_all_pink()
         print("Bard 応答作成中")
         actual_prompt = self._char_setting_str + global_character_prov.get_character_prompt() + "\n" + prompt if self.is_first_time else prompt
 

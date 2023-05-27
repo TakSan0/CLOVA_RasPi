@@ -80,7 +80,7 @@ class VoiceController :
     # マイクからの録音
     def microphone_record(self) :
         # 底面 LED を赤に
-        global_led_Ill.set_all_red()
+        global_led_Ill.set_all(global_led_Ill.RGB_RED)
 
         # PyAudioのオブジェクトを作成
         pyaud = pyaudio.PyAudio()
@@ -89,7 +89,7 @@ class VoiceController :
         print("聞き取り中：")
 
         # 底面 LED を暗緑に
-        global_led_Ill.set_all_dark_green()
+        global_led_Ill.set_all(global_led_Ill.RGB_DARKGREEN)
 
         # 録音準備
         rec_stream = pyaud.open(format=SPEECH_FORMAT,
@@ -149,7 +149,7 @@ class VoiceController :
                 # まだ開始できていなかったら、ここから録音開始
                 if not recording:
                     # 底面 LED を緑に
-                    global_led_Ill.set_all_green()
+                    global_led_Ill.set_all(global_led_Ill.RGB_GREEN)
 
                     # 録音開始
                     print("録音開始")
@@ -177,7 +177,7 @@ class VoiceController :
     # 音声からテキストに変換
     def speech_2_text(self, audio) :
         # 底面 LED をオレンジに
-        global_led_Ill.set_all_orange()
+        global_led_Ill.set_all(global_led_Ill.RGB_ORANGE)
 
         return self.stt.stt(audio, **self.stt_kwargs)
 
@@ -185,7 +185,7 @@ class VoiceController :
     # テキストから音声に変換
     def text_2_speech(self, text) :
         # 底面 LED を青に
-        global_led_Ill.set_all_blue()
+        global_led_Ill.set_all(global_led_Ill.RGB_BLUE)
 
         return self.tts.tts(text, **self.tts_kwargs)
 
@@ -193,7 +193,7 @@ class VoiceController :
     # TODO: pipe stdin to prevent from damaging sd card
     def play_audio_file(self, filename) :
         # 底面 LED を水に
-        global_led_Ill.set_all_cyan()
+        global_led_Ill.set_all(global_led_Ill.RGB_CYAN)
         print("ファイル再生 :{}".format(filename))
 
         # PyAudioのオブジェクトを作成

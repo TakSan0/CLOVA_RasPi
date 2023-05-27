@@ -11,6 +11,7 @@ from clova.processor.skill.datetime import DateTimeSkillProvider
 
 from clova.general.queue import global_speech_queue
 from clova.config.config import global_config_prov
+from clova.io.local.led import global_led_Ill
 
 from typing import Dict, Tuple, Type
 
@@ -67,6 +68,10 @@ class ConversationController :
 
         # どれにも該当しないときには AI に任せる。
         kwargs = global_config_prov.get_general_config()["apis"]["conversation"]["params"]
+
+        # 底面 LED をピンクに
+        global_led_Ill.set_all(global_led_Ill.RGB_PINK)
+
         result = self.provider.get_answer(prompt, **kwargs)
         if result:
             return result

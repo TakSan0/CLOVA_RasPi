@@ -22,7 +22,7 @@ def main() :
     line_sender = LineSkillProvider()
 
     # 底面 LED を黄色に
-    global_led_Ill.set_all_yellow()
+    global_led_Ill.set_all(global_led_Ill.RGB_YELLOW)
 
     # LEDを使うモジュールにインスタンスをコピー
     voice = VoiceController()
@@ -93,7 +93,7 @@ def main() :
 
 
     # 底面 LED をオフに
-    global_led_Ill.set_all_off()
+    global_led_Ill.set_all(global_led_Ill.RGB_OFF)
 
 if __name__ == "__main__":
     main()
