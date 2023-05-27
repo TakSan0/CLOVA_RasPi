@@ -19,11 +19,11 @@ def main():
     conv = ConversationController()
 
     # HTTPサーバー系のインスタンス作成
-    line_svr = HttpServer(8080, HttpReqLineHandler)
-    config_svr = HttpServer(8000, HttpReqSettingHandler)
+    HttpServer(8080, HttpReqLineHandler)
+    HttpServer(8000, HttpReqSettingHandler)
 
     # LINE送信モジュールのインスタンス
-    line_sender = LineSkillProvider()
+    LineSkillProvider()
 
     # 底面 LED を黄色に
     global_led_Ill.set_all(global_led_Ill.RGB_YELLOW)
@@ -32,9 +32,9 @@ def main():
     voice = VoiceController()
 
     # キー準備
-    char_swich = SwitchInput(SwitchInput.PIN_BACK_SW_BT, global_character_prov.select_next_character)
-    plus_swich = SwitchInput(SwitchInput.PIN_BACK_SW_PLUS, global_vol.vol_up_cb)
-    minus_swich = SwitchInput(SwitchInput.PIN_BACK_SW_MINUS, global_vol.vol_down_cb)
+    SwitchInput(SwitchInput.PIN_BACK_SW_BT, global_character_prov.select_next_character)
+    SwitchInput(SwitchInput.PIN_BACK_SW_PLUS, global_vol.vol_up_cb)
+    SwitchInput(SwitchInput.PIN_BACK_SW_MINUS, global_vol.vol_down_cb)
 
     # タイマ準備
     tmr = TimerSkillProvider()
