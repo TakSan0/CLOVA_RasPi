@@ -1,4 +1,4 @@
-# from CLOVA_config import HttpReqSettingHandler
+from clova.config.config import HttpReqSettingHandler
 from clova.io.local.led import global_led_Ill
 from clova.processor.skill.timer import TimerSkillProvider
 from clova.io.local.switch import SwitchInput
@@ -10,13 +10,16 @@ from clova.io.http.http_server import HttpServer
 from clova.processor.skill.line import LineSkillProvider, HttpReqLineHandler
 from clova.general.queue import global_speech_queue
 
+import platform
+import time
+
 def main() :
     # 会話モジュールのインスタンス作成
     conv = ConversationController()
 
     # HTTPサーバー系のインスタンス作成
     line_svr = HttpServer(8080, HttpReqLineHandler)
-    # config_svr = HttpServer(8000, HttpReqSettingHandler)
+    config_svr = HttpServer(8000, HttpReqSettingHandler)
 
     # LINE送信モジュールのインスタンス
     line_sender = LineSkillProvider()
@@ -37,6 +40,12 @@ def main() :
     conv.tmr = tmr
     #tmr.Start()
 
+    system = platform.system()
+    is_debug_session = False
+    if system == "Windows" or system == "Darwin":
+        print("\033[93mplatform.system()がWindowsまたはDarwinを返しました。プログラムはデバッグセッションであることを想定し、メインループで実際にマイクを起動しません。\033[0m")
+        is_debug_session = True
+
     # メインループ
     while True :
 
@@ -44,19 +53,23 @@ def main() :
 
         # 割り込み音声ありの時
         if ( int_exists == True) :
-            if stt_result != "" :
+            if stt_result != None :
                 filename = voice.text_to_speech(stt_result)
-                if (filename != "") :
+                if (filename != None) :
                     voice.play_audio_file(filename)
                 else :
                     print("音声ファイルを取得できませんでした。")
 
         # 割り込み音声無の時
         else :
-            answer_result = ""
+            answer_result = None
 
             # 録音
-            record_data = voice.microphone_record()
+            if not is_debug_session:
+                record_data = voice.microphone_record()
+            else:
+                time.sleep(10)
+                record_data = b""
 
             # テキストに返還
             stt_result = voice.speech_to_text(record_data)

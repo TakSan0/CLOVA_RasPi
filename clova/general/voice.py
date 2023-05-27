@@ -179,6 +179,9 @@ class VoiceController :
         # 底面 LED をオレンジに
         global_led_Ill.set_all(global_led_Ill.RGB_ORANGE)
 
+        if len(audio) == 0:
+            return None
+
         return self.stt.stt(audio, **self.stt_kwargs)
 
 

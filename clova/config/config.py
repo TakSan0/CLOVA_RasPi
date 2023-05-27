@@ -1,5 +1,6 @@
-# import os
-# import http.server
+import os
+import http.server
+from urllib.parse import parse_qs
 import json
 import dotenv
 import os
@@ -45,9 +46,10 @@ class ConfigurationProvider :
         self.requirements_config = json.loads(file_text)
 
     # 全設定パラメータを書き込む
-    def save_config_file(self) :
+    def save_general_config_file(self, conf) :
         with open(self.GENERAL_CONFIG_FILENAME, "w", encoding="utf-8") as cfg_file:
-            json.dump(self.general_config, cfg_file, indent=2, ensure_ascii=False)
+            json.dump(conf, cfg_file, indent='\t', ensure_ascii=False)
+            cfg_file.write("\n")
 
     def assert_current_config_requirements(self):
         if self.general_config["apis"]["tts"]["system"] is not None:
@@ -67,86 +69,87 @@ class ConfigurationProvider :
         return True
 
 
-# TODO: port this to new format config; probably have to rewrite most of it
+# TODO: add support for changing apis
+# TODO: add support for checking requirements met before changing
 
-# # ==================================
-# #    Setting HTTPハンドラクラス
-# # ==================================
-# class HttpReqSettingHandler(http.server.BaseHTTPRequestHandler) :
+# ==================================
+#    Setting HTTPハンドラクラス
+# ==================================
+class HttpReqSettingHandler(http.server.BaseHTTPRequestHandler) :
 
-#     # GETリクエストを受け取った場合の処理
-#     def on_GET(self):
-#         sys_config = SysConfig()
+    # GETリクエストを受け取った場合の処理
+    def do_GET(self):
+        # キャラクタの選択肢を作成する。
+        with open("./assets/CLOVA_systems.json", "r", encoding="utf-8") as char_file:
+            file_text = char_file.read()
+        char_cfg_json = json.loads(file_text)
 
-#         # キャラクタの選択肢を作成する。
-#         with open(os.path.expanduser("./CLOVA_character.json"), "r", encoding="utf-8") as char_file:
-#             file_text = char_file.read()
-#         char_cfg_json = json.loads(file_text)
+        char_selection = ""
+        for index, char_data in char_cfg_json["characters"].items() :
+            line_data = "            <option value=\"{}\">{} (CV: {})</option>\n".format(index, char_data["persona"]["name"], index)
+            char_selection += line_data
+        #print(char_selection)
 
-#         char_selection = ""
-#         index = 0
-#         for char_data in char_cfg_json["characters"] :
-#             line_data = "            <option value=\"{}\">{}</option>\n".format(index, char_data["Name"])
-#             char_selection += line_data
-#             index += 1
-#         #print(char_selection)
+        # HTMLファイルを読み込む
+        with open("./assets/index.html", "r", encoding="utf-8") as html_file:
+            html = html_file.read()
 
-#         # HTMLファイルを読み込む
-#         with open(os.path.expanduser("./CLOVA_RasPi/index.html"), "r", encoding="utf-8") as html_file:
-#             html = html_file.read()
+        html = html.replace("{characterSelList}", char_selection)
 
-#         html = html.replace("{characterSelList}", char_selection)
+        sys_config = global_config_prov.get_general_config()
 
-#         # 変数の値をHTMLに埋め込む
-#         html = html.replace("{DefaultCharSel}", str(sys_config.settings["character"]["default_sel"]))
-#         html = html.replace("{MicChannels}", str(sys_config.settings["hardware"]["audio"]["microphone"]["num_ch"]))
-#         html = html.replace("{MicIndex}", str(sys_config.settings["hardware"]["audio"]["microphone"]["index"]))
-#         html = html.replace("{SilentThreshold}", str(sys_config.settings["hardware"]["audio"]["microphone"]["silent_thresh"]))
-#         html = html.replace("{TerminateSilentDuration}", str(sys_config.settings["hardware"]["audio"]["microphone"]["term_duration"]))
-#         html = html.replace("{SpeakerChannels}", str(sys_config.settings["hardware"]["audio"]["speaker"]["num_ch"]))
-#         html = html.replace("{SpeakerIndex}", str(sys_config.settings["hardware"]["audio"]["speaker"]["index"]))
-#         #print(html) # for debug
+        # 変数の値をHTMLに埋め込む
+        html = html.replace("{DefaultCharSel}", str(sys_config["character"]))
+        html = html.replace("{MicChannels}", str(sys_config["hardware"]["audio"]["microphone"]["num_ch"]))
+        html = html.replace("{MicIndex}", str(sys_config["hardware"]["audio"]["microphone"]["index"]))
+        html = html.replace("{SilentThreshold}", str(sys_config["hardware"]["audio"]["microphone"]["silent_thresh"]))
+        html = html.replace("{TerminateSilentDuration}", str(sys_config["hardware"]["audio"]["microphone"]["term_duration"]))
+        html = html.replace("{SpeakerChannels}", str(sys_config["hardware"]["audio"]["speaker"]["num_ch"]))
+        html = html.replace("{SpeakerIndex}", str(sys_config["hardware"]["audio"]["speaker"]["index"]))
+        #print(html) # for debug
 
-#         # HTTPレスポンスを返す
-#         self.send_response(200)
-#         self.send_header("Content-type", "text/html; charset=utf-8")
-#         self.end_headers()
-#         self.wfile.write(html.encode("utf-8"))
+        # HTTPレスポンスを返す
+        self.send_response(200)
+        self.send_header("Content-type", "text/html; charset=utf-8")
+        self.end_headers()
+        self.wfile.write(html.encode("utf-8"))
 
-#     # POSTリクエストを受け取った場合の処理
-#     def on_POST(self):
-#         sys_config = global_config_sys
+    # POSTリクエストを受け取った場合の処理
+    def do_POST(self):
+        sys_config = global_config_prov.get_general_config()
 
-#         # POSTデータを取得する
-#         content_length = int(self.headers["Content-Length"])
-#         post_data = self.rfile.read(content_length)
-#         post_data = post_data.decode("utf-8")
-#         print(post_data)# for debug
+        # POSTデータを取得する
+        content_length = int(self.headers["Content-Length"])
+        post_data = self.rfile.read(content_length)
+        post_data = post_data.decode("utf-8")
 
-#         # 変数を更新する
-#         #global MicChannels, MicIndex, SpeakerChannels, SpeakerIndex
-#         sys_config.settings["character"]["default_sel"] = int(post_data.split("&")[0].split("=")[1])
-#         sys_config.settings["hardware"]["audio"]["microphone"]["num_ch"] = int(post_data.split("&")[1].split("=")[1])
-#         sys_config.settings["hardware"]["audio"]["microphone"]["index"] = int(post_data.split("&")[2].split("=")[1])
-#         sys_config.settings["hardware"]["audio"]["microphone"]["silent_thresh"] = int(post_data.split("&")[3].split("=")[1])
-#         sys_config.settings["hardware"]["audio"]["microphone"]["term_duration"] = int(post_data.split("&")[4].split("=")[1])
-#         sys_config.settings["hardware"]["audio"]["speaker"]["num_ch"] = int(post_data.split("&")[5].split("=")[1])
-#         sys_config.settings["hardware"]["audio"]["speaker"]["index"] = int(post_data.split("&")[6].split("=")[1])
+        data = parse_qs(post_data)
 
-#         print("default_char_sel={}".format(sys_config.settings["character"]["default_sel"]))
-#         print("mic num_ch={}".format(sys_config.settings["hardware"]["audio"]["microphone"]["num_ch"]))
-#         print("mic index={}".format(sys_config.settings["hardware"]["audio"]["microphone"]["index"]))
-#         print("mic silent_thresh={}".format(sys_config.settings["hardware"]["audio"]["microphone"]["silent_thresh"]))
-#         print("mic term_duration={}".format(sys_config.settings["hardware"]["audio"]["microphone"]["term_duration"]))
-#         print("spk num_ch={}".format(sys_config.settings["hardware"]["audio"]["speaker"]["num_ch"]))
-#         print("spk index={}".format(sys_config.settings["hardware"]["audio"]["speaker"]["index"]))
+        print(data)# for debug
 
-#         sys_config.save_config_file()
+        # 変数を更新する
+        sys_config["character"] = data["default_char_sel"][0]
+        sys_config["hardware"]["audio"]["microphone"]["num_ch"] =  int(data["mic_channels"][0])
+        sys_config["hardware"]["audio"]["microphone"]["index"] = int(data["mic_index"][0])
+        sys_config["hardware"]["audio"]["microphone"]["silent_thresh"] = int(data["silent_thresh"][0])
+        sys_config["hardware"]["audio"]["microphone"]["term_duration"] = int(data["term_duration"][0])
+        sys_config["hardware"]["audio"]["speaker"]["num_ch"] = int(data["speaker_channels"][0])
+        sys_config["hardware"]["audio"]["speaker"]["index"] = int(data["speaker_index"][0])
 
-#         # HTTPレスポンスを返す
-#         self.send_response(303)
-#         self.send_header("Location", "/")
-#         self.end_headers()
+        print("default_char_sel={}".format(sys_config["character"]))
+        print("mic num_ch={}".format(sys_config["hardware"]["audio"]["microphone"]["num_ch"]))
+        print("mic index={}".format(sys_config["hardware"]["audio"]["microphone"]["index"]))
+        print("mic silent_thresh={}".format(sys_config["hardware"]["audio"]["microphone"]["silent_thresh"]))
+        print("mic term_duration={}".format(sys_config["hardware"]["audio"]["microphone"]["term_duration"]))
+        print("spk num_ch={}".format(sys_config["hardware"]["audio"]["speaker"]["num_ch"]))
+        print("spk index={}".format(sys_config["hardware"]["audio"]["speaker"]["index"]))
+
+        global_config_prov.save_general_config_file(sys_config)
+
+        # HTTPレスポンスを返す
+        self.send_response(303)
+        self.send_header("Location", "/")
+        self.end_headers()
 
 # ==================================
 #      外部参照用のインスタンス

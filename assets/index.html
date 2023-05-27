@@ -15,7 +15,7 @@
     <form method="post" id="SettingForm">
         <label>Select a default character:</label>
         <select id="default_char_sel" name="default_char_sel">
-{CharactorSelList}
+{characterSelList}
         </select>
         <label for="mic_channels">MicChannels:</label>
         <input type="number" name="mic_channels" id="mic_channels" value="{MicChannels}" min="1" max="2" step="1">
@@ -55,7 +55,7 @@
             event.preventDefault(); // フォームのデフォルトの送信をキャンセル
 
             // 選択された値を取得
-            var selectedCharactor = document.getElementById('default_char_sel').value;
+            var selectedCharacter = document.getElementById('default_char_sel').value;
             var micChannels = document.getElementById('mic_channels').value;
             var micIndex = document.getElementById('mic_index').value;
             var silentThreshold = document.getElementById('silent_thresh').value;
@@ -74,7 +74,7 @@
                 }
             };
             xhr.send(
-                'default_char_sel=' + selectedCharactor +
+                'default_char_sel=' + selectedCharacter +
                 '&mic_channels=' + micChannels +
                 '&mic_index=' + micIndex +
                 '&silent_thresh=' + silentThreshold +

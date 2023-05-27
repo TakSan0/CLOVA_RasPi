@@ -88,8 +88,11 @@ class IllminationLed :
     def __del__(self) :
         print("Delete <IllminationLed> class")
 
-        self.set_all(global_led_Ill.RGB_RED)
-        self.finalize()
+        try:
+            self.set_all(global_led_Ill.RGB_RED)
+            self.finalize()
+        except Exception:
+            print("Delete <IllminationLed> fail; seems to be already finalized?")
 
     # 初期化処理
     def init(self) :
