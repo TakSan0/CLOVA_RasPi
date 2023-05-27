@@ -1,4 +1,3 @@
-import time
 import socketserver
 import threading as th
 from clova.processor.skill.line import HttpReqLineHandler
