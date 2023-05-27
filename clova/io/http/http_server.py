@@ -37,10 +37,7 @@ def module_test():
     # インスタンス作成
     HttpServer(8080, HttpReqLineHandler)
 
-    # ループ処理
-    # TODO: wow
-    while True:
-        time.sleep(0.1)
+    input()
 
 
 # ==================================
