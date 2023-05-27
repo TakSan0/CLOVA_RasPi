@@ -32,9 +32,9 @@ def main():
     voice = VoiceController()
 
     # キー準備
-    char_swich = SwitchInput(SwitchInput.PIN_BACK_SW_BT, global_character_prov.select_next_character)
-    plus_swich = SwitchInput(SwitchInput.PIN_BACK_SW_PLUS, global_vol.vol_up_cb)
-    minus_swich = SwitchInput(SwitchInput.PIN_BACK_SW_MINUS, global_vol.vol_down_cb)
+    char_switch = SwitchInput(SwitchInput.PIN_BACK_SW_BT, global_character_prov.select_next_character)
+    plus_switch = SwitchInput(SwitchInput.PIN_BACK_SW_PLUS, global_vol.vol_up_cb)
+    minus_switch = SwitchInput(SwitchInput.PIN_BACK_SW_MINUS, global_vol.vol_down_cb)
 
     # タイマ準備
     tmr = TimerSkillProvider()
@@ -107,6 +107,13 @@ def main():
 
     # 底面 LED をオフに
     global_led_Ill.set_all(global_led_Ill.RGB_OFF)
+
+    line_svr.__del__()
+    config_svr.__del__()
+    line_sender.__del__()
+    char_switch.__del__()
+    plus_switch.__del__()
+    minus_switch.__del__()
 
 
 if __name__ == "__main__":
