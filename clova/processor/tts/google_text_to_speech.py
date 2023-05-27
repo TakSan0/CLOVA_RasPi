@@ -1,6 +1,6 @@
 from clova.processor.tts.base_tts import BaseTTSProvider
-from google.cloud import speech_v1p1beta1 as speech
 from google.cloud import texttospeech as tts
+
 
 class GoogleTextToSpeechTTSProvider(BaseTTSProvider):
     GOOGLE_SPEECH_RATE = 16000
@@ -13,7 +13,7 @@ class GoogleTextToSpeechTTSProvider(BaseTTSProvider):
 
     def __init__(self):
         self._client_tts = tts.TextToSpeechClient()
-    
+
     def tts(self, text, **kwargs):
         print("音声合成中(Google TTS)")
 
@@ -25,7 +25,6 @@ class GoogleTextToSpeechTTSProvider(BaseTTSProvider):
         pitch_cfg = float(kwargs["pitch"])
         rate_cfg = float(kwargs["rate"])
 
-
         # 音声合成設定
         voice_config = tts.VoiceSelectionParams(
             language_code=kwargs["language"],
@@ -35,12 +34,12 @@ class GoogleTextToSpeechTTSProvider(BaseTTSProvider):
 
         # 音声ファイル形式設定
         audio_config = tts.AudioConfig(
-            audio_encoding=tts.AudioEncoding.LINEAR16, speaking_rate=rate_cfg, pitch = pitch_cfg, sample_rate_hertz = self.GOOGLE_SPEECH_RATE
+            audio_encoding=tts.AudioEncoding.LINEAR16, speaking_rate=rate_cfg, pitch=pitch_cfg, sample_rate_hertz=self.GOOGLE_SPEECH_RATE
         )
 
         # 音声合成メイン処理実行
         response = self._client_tts.synthesize_speech(
             input=synthesis_input, voice=voice_config, audio_config=audio_config
         )
-        
+
         return response.audio_content

@@ -1,6 +1,6 @@
 try:
     import RPi.GPIO as GPIO
-except:
+except BaseException:
     from fake_rpi.RPi import GPIO
 
 PIN_FRONT_SW = 4
@@ -20,20 +20,22 @@ PIN_ILL_LED_ENA = 24
 # ==================================
 #           GPIO制御クラス
 # ==================================
-class GPIOControl :
+
+
+class GPIOControl:
     # コンストラクタ
-    def __init__(self) :
+    def __init__(self):
         print("Create <GPIOControl> class")
 
         self.init()
 
     # デストラクタ
-    def __del__(self) :
+    def __del__(self):
         # 現状ログ出すだけ
         print("Delete <GPIOControl> class")
 
     # 初期化処理
-    def init() :
+    def init():
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(PIN_BACK_SW_MINUS, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(PIN_BACK_SW_PLUS, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -45,7 +47,7 @@ class GPIOControl :
         GPIO.output(PIN_ILL_LED_ENA, GPIO.LOW)
 
     # 解放処理
-    def release() :
+    def release():
         GPIO.cleanup(PIN_BACK_SW_MINUS)
         GPIO.cleanup(PIN_BACK_SW_PLUS)
         GPIO.cleanup(PIN_BACK_SW_BT)
@@ -56,9 +58,12 @@ class GPIOControl :
 # ==================================
 #       本クラスのテスト用処理
 # ==================================
-def module_test() :
+
+
+def module_test():
     # 現状何もしない
     pass
+
 
 # ==================================
 # 本モジュールを直接呼出した時の処理

@@ -4,11 +4,12 @@ import requests
 import json
 import time
 
+
 class VoiceVoxTTSProvider(BaseTTSProvider):
     def __init__(self):
         self.web_voicevox_api_key = os.environ["WEB_VOICEVOX_API_KEY"]
         self.voicevox_custom_api_endpoint = os.environ["VOICEVOX_CUSTOM_API_ENDPOINT"]
-    
+
     def tts(self, text, **kwargs):
         print("音声合成中(VoiceVox)")
 
@@ -34,17 +35,17 @@ class VoiceVoxTTSProvider(BaseTTSProvider):
             # print("status = '{}'".format(response.status_code))
             # print("content = '{}'".format(response.content))
             # print("text = '{}'".format(response.text))
-            if (res_json["success"] == True) :
+            if (res_json["success"]):
 
                 while True:
                     # print("webDownloadUrl = '{}'".format(res_json["wavDownloadUrl"]))
                     response = requests.get(res_json["wavDownloadUrl"])
 
-                    if (response.status_code == 200) :
+                    if (response.status_code == 200):
                         break
 
                     # 404エラーの場合はもう一度やり直す。
-                    elif (response.status_code != 404) :
+                    elif (response.status_code != 404):
                         # 404 以外のHTTPエラーがあれば例外を発生させる
                         response.raise_for_status()
                         break
@@ -52,7 +53,7 @@ class VoiceVoxTTSProvider(BaseTTSProvider):
                     time.sleep(0.5)
 
                 return response.content
-            else :
+            else:
                 print("NOT success (VoiceVox")
 
         except requests.exceptions.RequestException as e:
@@ -74,7 +75,7 @@ class VoiceVoxTTSProvider(BaseTTSProvider):
             })
             phrase.raise_for_status()
 
-            res = requests.post(self.voicevox_custom_api_endpoint + "/synthesis", params={ "speaker": kwargs["x_voice_vox_id"] }, data=phrase.content)
+            res = requests.post(self.voicevox_custom_api_endpoint + "/synthesis", params={"speaker": kwargs["x_voice_vox_id"]}, data=phrase.content)
             res.raise_for_status()
 
             return res.content

@@ -24,21 +24,23 @@ NEWS_URL_STRING = "https://news.yahoo.co.jp/"
 # ==================================
 #       ニュースリーダークラス
 # ==================================
-class NewsSkillProvider(BaseSkillProvider) :
+
+
+class NewsSkillProvider(BaseSkillProvider):
     # コンストラクタ
-    def __init__(self) :
+    def __init__(self):
         print("Create <NewsReader> class")
         self._news_count = 0
 
     # デストラクタ
-    def __del__(self) :
+    def __del__(self):
         # 現状ログ出すだけ
         print("Delete <NewsReader> class")
 
     # ニュース 質問に答える。ニュースの問い合わせではなければ None を返す
-    def try_get_answer(self, request_text) :
+    def try_get_answer(self, request_text):
         # 前回がニュースで無ければ
-        if (self._news_count == 0) :
+        if (self._news_count == 0):
             match = re.match("(.+)ニュース.*教えて", request_text)
             if match is not None:
                 category = match.group(1)
@@ -51,13 +53,13 @@ class NewsSkillProvider(BaseSkillProvider) :
                     news_list = soup.find_all(href=re.compile("news.yahoo.co.jp/pickup"))
                     news_headlines = "以下のニュースがあります。"
 
-                    elements = soup.find_all( href = re.compile( "news.yahoo.co.jp/pickup" ) )
+                    elements = soup.find_all(href=re.compile("news.yahoo.co.jp/pickup"))
                     num = 1
                     for element in elements:
                         # ニューステキスト
                         news_text = element.getText()
                         # 後で、番号を指定するとニュースを読み上げる様に拡張するために LINK も保存しておく
-                        #link = element.attrs["href"]
+                        # link = element.attrs["href"]
                         news_headlines += "{}. {}".format(str(num), news_text) + "\n"
                         num += 1
                     print(news_headlines)
@@ -77,16 +79,16 @@ class NewsSkillProvider(BaseSkillProvider) :
                 self._news_count = 0
                 return None
         # 前回がニュースであれば番号を選択する
-        else :
-            if ( ( "終わり" in request_text ) or ( "おわり" in request_text ) ) :
+        else:
+            if (("終わり" in request_text) or ("おわり" in request_text)):
                 answer_text = "ニュースを終わります"
                 self._news_count = 0
                 return (answer_text)
 
-            match = re.match("(\d+)", request_text)
+            match = re.match("(\\d+)", request_text)
             if match is not None:
                 selected_num = int(match.group(1))
-                if (1 <= selected_num <= self._news_count) :
+                if (1 <= selected_num <= self._news_count):
                     # 選択された番号から URL を取得する
                     selected_news = self._news_list[selected_num - 1]
                     news_url = selected_news["href"]
@@ -109,7 +111,7 @@ class NewsSkillProvider(BaseSkillProvider) :
                     # class属性の中に「Direct」が含まれる行を抽出する
                     news_detail = detail_soup.find(class_=re.compile("Direct")).text
 
-                    #print("Detail text ={}".format(news_detail))
+                    # print("Detail text ={}".format(news_detail))
 
                     return news_detail
                 else:
@@ -119,14 +121,17 @@ class NewsSkillProvider(BaseSkillProvider) :
 # ==================================
 #       本クラスのテスト用処理
 # ==================================
-def module_test() :
+
+
+def module_test():
     news = NewsSkillProvider()
     news_text = news.try_get_answer("国際ニュースを教えて")
     print(news_text)
     time.sleep(5)
 
-    news_text= news.try_get_answer("1番")
+    news_text = news.try_get_answer("1番")
     print(news_text)
+
 
 # ==================================
 # 本モジュールを直接呼出した時の処理

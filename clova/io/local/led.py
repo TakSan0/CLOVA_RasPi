@@ -2,7 +2,7 @@ import time
 try:
     import RPi.GPIO as GPIO
     import smbus
-except:
+except BaseException:
     from fake_rpi.RPi import GPIO
     from fake_rpi import smbus
 
@@ -23,31 +23,35 @@ PIN_ILL_LED_ENA = 24
 # ==================================
 #    LEDインジケータ制御クラス
 # ==================================
-class IndicatorLed :
+
+
+class IndicatorLed:
     LED_OFF = False
     LED_ON = True
 
     # コンストラクタ
-    def __init__(self) :
+    def __init__(self):
         print("Create <IndicatorLed> class")
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(PIN_IND_LED_G, GPIO.OUT)
 
     # デストラクタ
-    def __del__(self) :
+    def __del__(self):
         print("Delete <IndicatorLed class")
 
         GPIO.cleanup(PIN_IND_LED_G)
 
     # LEDインディケーター On/Off
-    def set_led(self, onoff, pin = PIN_IND_LED_G) :
+    def set_led(self, onoff, pin=PIN_IND_LED_G):
         GPIO.output(pin, onoff)
 
 # ==================================
 #   イルミネーションLED制御クラス
 # ==================================
-class IllminationLed :
+
+
+class IllminationLed:
     I2C_SEL_CH = 0
     SLAVE_ADDR = 0x50
     REG_ADDRESS_TABLE = [
@@ -64,28 +68,28 @@ class IllminationLed :
         [0x04, 0x24, 0x44], [0x14, 0x34, 0x54],
         [0x03, 0x23, 0x43], [0x13, 0x33, 0x53]
     ]
-    RGB_OFF        = [0x00, 0x00, 0x00]
-    RGB_BLACK      = [0x00, 0x00, 0x00]
-    RGB_RED        = [0xFF, 0x00, 0x00]
-    RGB_DARKGREEN  = [0x00, 0x1F, 0x00]
-    RGB_GREEN      = [0x00, 0xFF, 0x00]
-    RGB_BLUE       = [0x00, 0x00, 0xFF]
-    RGB_ORANGE     = [0xFF, 0x7F, 0x00]
-    RGB_YELLOW     = [0xFF, 0xFF, 0x00]
-    RGB_PINK       = [0xFF, 0x00, 0xFF]
-    RGB_CYAN       = [0x00, 0xFF, 0xFF]
+    RGB_OFF = [0x00, 0x00, 0x00]
+    RGB_BLACK = [0x00, 0x00, 0x00]
+    RGB_RED = [0xFF, 0x00, 0x00]
+    RGB_DARKGREEN = [0x00, 0x1F, 0x00]
+    RGB_GREEN = [0x00, 0xFF, 0x00]
+    RGB_BLUE = [0x00, 0x00, 0xFF]
+    RGB_ORANGE = [0xFF, 0x7F, 0x00]
+    RGB_YELLOW = [0xFF, 0xFF, 0x00]
+    RGB_PINK = [0xFF, 0x00, 0xFF]
+    RGB_CYAN = [0x00, 0xFF, 0xFF]
     RGB_LIST = [RGB_OFF, RGB_BLACK, RGB_RED, RGB_DARKGREEN, RGB_GREEN, RGB_BLUE, RGB_ORANGE, RGB_YELLOW, RGB_PINK, RGB_CYAN]
 
     ALL_BITS = 0xFFFFFFF
 
     # コンストラクタ
-    def __init__(self) :
+    def __init__(self):
         self.is_available = False
         print("Create <IllminationLed> class")
         self.init()
 
     # デストラクタ
-    def __del__(self) :
+    def __del__(self):
         print("Delete <IllminationLed> class")
 
         try:
@@ -95,10 +99,10 @@ class IllminationLed :
             print("Delete <IllminationLed> fail; seems to be already finalized?")
 
     # 初期化処理
-    def init(self) :
+    def init(self):
         # Initialize Lib
         GPIO.setmode(GPIO.BCM)
-        try :
+        try:
             self.is_available = True
             self._i2c = smbus.SMBus(self.I2C_SEL_CH)
             self._i2c.write_byte_data(self.SLAVE_ADDR, 0x00, 0x01)
@@ -126,7 +130,7 @@ class IllminationLed :
         time.sleep(0.01)
         GPIO.output(PIN_ILL_LED_ENA, GPIO.HIGH)
 
-        if (self.is_available == True) :
+        if (self.is_available):
             # Send Initialize Command
             self._i2c.write_byte_data(self.SLAVE_ADDR, 0xFE, 0xC5)
             self._i2c.write_byte_data(self.SLAVE_ADDR, 0xFD, 0x03)
@@ -162,46 +166,47 @@ class IllminationLed :
             self._i2c.write_byte_data(self.SLAVE_ADDR, 0x17, 0x00)
 
     # コマンドヘッダーの送信
-    def send_command_header(self) :
-        if (self.is_available == True) :
+    def send_command_header(self):
+        if (self.is_available):
             self._i2c.write_byte_data(self.SLAVE_ADDR, 0xFE, 0xC5)
             self._i2c.write_byte_data(self.SLAVE_ADDR, 0xFD, 0x01)
-        else :
+        else:
             print("LED Device unavailable!")
 
     # ビット指定でRGB食を指定設定
-    def set_leds_with_bit_mask(self, bits, rgb_color) :
-        if (self.is_available == True) :
+    def set_leds_with_bit_mask(self, bits, rgb_color):
+        if (self.is_available):
             self.send_command_header()
             for num in range(len(self.REG_ADDRESS_TABLE)):
                 for rgb in range(len(self.REG_ADDRESS_TABLE[num])):
                     bits_mask = (1 << num)
-                    if ( ( bits_mask & bits) != 0 ) :
-                        self._i2c.write_byte_data(self.SLAVE_ADDR, self.REG_ADDRESS_TABLE[num][rgb], rgb_color[rgb] )
-                    else :
-                        self._i2c.write_byte_data(self.SLAVE_ADDR, self.REG_ADDRESS_TABLE[num][rgb], self.RGB_OFF[rgb] )
+                    if ((bits_mask & bits) != 0):
+                        self._i2c.write_byte_data(self.SLAVE_ADDR, self.REG_ADDRESS_TABLE[num][rgb], rgb_color[rgb])
+                    else:
+                        self._i2c.write_byte_data(self.SLAVE_ADDR, self.REG_ADDRESS_TABLE[num][rgb], self.RGB_OFF[rgb])
             time.sleep(0.05)
-        else :
+        else:
             print("LED Device unavailable!")
 
     # 配列指定ですべての LED を設定する
-    def set_all_led_with_array(self, rgb_data) :
-        if (self.is_available == True) :
+    def set_all_led_with_array(self, rgb_data):
+        if (self.is_available):
             self.send_command_header()
             for num in range(len(rgb_data)):
                 for rgb in range(len(rgb_data[num])):
-                    self._i2c.write_byte_data(self.SLAVE_ADDR, self.REG_ADDRESS_TABLE[num][rgb], rgb_data[num][rgb] )
-        else :
+                    self._i2c.write_byte_data(self.SLAVE_ADDR, self.REG_ADDRESS_TABLE[num][rgb], rgb_data[num][rgb])
+        else:
             print("LED Device unavailable!")
 
     def set_all(self, rgb):
         self.set_leds_with_bit_mask(self.ALL_BITS, rgb)
 
     # 終了処理
-    def finalize(self) :
+    def finalize(self):
         GPIO.cleanup(PIN_ILL_LED_POW)
         GPIO.cleanup(PIN_ILL_LED_ENA)
         print("Finalize")
+
 
 # ==================================
 #      外部参照用のインスタンス
@@ -211,6 +216,7 @@ global_led_Ill = IllminationLed()
 # ==================================
 #       本クラスのテスト用処理
 # ==================================
+
 
 def load_illumi_data(data_bytes, child_length, grandchild_length):
     result = []
@@ -233,7 +239,8 @@ def load_illumi_data(data_bytes, child_length, grandchild_length):
 #     flattened = [byte for sublist in illumi_data for subsublist in sublist for byte in subsublist]
 #     return bytes(flattened)
 
-def module_test() :
+
+def module_test():
     with open('./assets/illumi_test.bin', 'rb') as file:
         data_bytes = file.read()
     illumi_data = load_illumi_data(data_bytes, 22, 3)
@@ -249,10 +256,10 @@ def module_test() :
         ill_led.set_all_led_with_array(illumi_data[step])
         time.sleep(0.05)
 
+
 # ==================================
 # 本モジュールを直接呼出した時の処理
 # ==================================
 if __name__ == "__main__":
     # 直接呼び出したときは、モジュールテストを実行する。
     module_test()
-

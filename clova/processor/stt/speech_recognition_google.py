@@ -3,10 +3,11 @@ from clova.processor.stt.base_stt import BaseSTTProvider
 
 GOOGLE_SPEECH_RATE = 16000
 
-class GoogleCloudSpeechSTTProvider(BaseSTTProvider):
+
+class SpeechRecognitionGoogleSTTProvider(BaseSTTProvider):
     def __init__(self):
         pass
-    
+
     def stt(self, audio, **kwargs):
         print("音声からテキストに変換中(Speech Recognition)")
 

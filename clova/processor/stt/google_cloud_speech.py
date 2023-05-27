@@ -7,7 +7,7 @@ class GoogleCloudSpeechSTTProvider(BaseSTTProvider):
 
     def __init__(self):
         self._client_speech = speech.SpeechClient()
-    
+
     def stt(self, audio, **kwargs):
         print("音声からテキストに変換中(Google Cloud Speech)")
 
@@ -27,9 +27,9 @@ class GoogleCloudSpeechSTTProvider(BaseSTTProvider):
 
         # 結果取得処理 (JSONから抜き出す)
         # print(len(speech_response.results)) # デバッグ用
-        if (len(speech_response.results) != 0) :
+        if (len(speech_response.results) != 0):
             result = speech_response.results[0].alternatives[0].transcript.strip()
-        else :
+        else:
             print("音声取得に失敗")
             result = None
 

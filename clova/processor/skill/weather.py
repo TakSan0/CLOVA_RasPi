@@ -80,7 +80,8 @@ area_codes = {
     "八重山": "474000",
 }
 
-class WeatherSkillProvider(BaseSkillProvider) :
+
+class WeatherSkillProvider(BaseSkillProvider):
     # コンストラクタ
     def __init__(self):
         # 現状ログ出すだけ
@@ -93,7 +94,7 @@ class WeatherSkillProvider(BaseSkillProvider) :
 
     # 天気 質問に答える。天気の問い合わせではなければ None を返す
     def try_get_answer(self, request_text):
-        if ( ( "天気を教えて" in request_text) or ( "天気は" in request_text) ) :
+        if (("天気を教えて" in request_text) or ("天気は" in request_text)):
             # 天気情報を取得する日付のデフォルト値(今日の日付文字列)
             date_str = datetime.datetime.now().strftime("%Y-%m-%d")
             date = "きょう"
@@ -125,20 +126,19 @@ class WeatherSkillProvider(BaseSkillProvider) :
             print("URL={}".format(url))
             response = requests.get(url)
             weather_data = response.json()
-            #print("weather_data = {}".format(weather_data))
+            # print("weather_data = {}".format(weather_data))
 
             # 取得JSONから日付を検索
             idx = 0
-            #print(weather_data[0]["timeSeries"][0]["timeDefines"])
-            for time_define in weather_data[0]["timeSeries"][0]["timeDefines"] :
+            # print(weather_data[0]["timeSeries"][0]["timeDefines"])
+            for time_define in weather_data[0]["timeSeries"][0]["timeDefines"]:
                 # 指定日の文字列を含む日時定義を検索し一致したら、そのインデックス値の天気を出力する
-                if (date_str in time_define) :
+                if (date_str in time_define):
                     weather_text = "{} {} の {} の天気は{} です。".format(date, date_str, area, weather_data[0]["timeSeries"][0]["areas"][0]["weathers"][idx])
 
                     print(weather_text)
                     return weather_text
                 idx += 1
-
 
             # 該当がない場合は空で返信
             answer_text = "天気データが取得できませんでした。"
@@ -150,23 +150,26 @@ class WeatherSkillProvider(BaseSkillProvider) :
             print("No Keyword for Weather")
             return None
 
-    def print_areas(self) :
+    def print_areas(self):
         response = requests.get("https://www.jma.go.jp/bosai/common/const/area.json")
         response_data = response.json()
-        for code in response_data["centers"] :
-            print("    '{}': '{}'".format( response_data["centers"][code]["name"], code ))
+        for code in response_data["centers"]:
+            print("    '{}': '{}'".format(response_data["centers"][code]["name"], code))
 
         print("")
-        for code in response_data["offices"] :
-            print("    '{}': '{}',".format( response_data["offices"][code]["name"], code ))
+        for code in response_data["offices"]:
+            print("    '{}': '{}',".format(response_data["offices"][code]["name"], code))
 
 # ==================================
 #       本クラスのテスト用処理
 # ==================================
-def module_test() :
+
+
+def module_test():
     weather = WeatherSkillProvider()
-    #weather.PrintAreas()
+    # weather.PrintAreas()
     weather.try_get_answer("明日の東京の天気を教えて")
+
 
 # ==================================
 # 本モジュールを直接呼出した時の処理
@@ -174,4 +177,3 @@ def module_test() :
 if __name__ == "__main__":
     # 直接呼び出したときは、モジュールテストを実行する。
     module_test()
-

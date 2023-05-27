@@ -6,16 +6,18 @@ from clova.processor.skill.line import HttpReqLineHandler
 # ==================================
 #       HTTPサーバークラス
 # ==================================
-class HttpServer :
+
+
+class HttpServer:
     # コンストラクタ
-    def __init__(self, port, handler) :
+    def __init__(self, port, handler):
         self._port = port
         self._handler = handler
         print("Create <HttpServer> class")
-        th.Thread(target = self.serve, args = (), name = "HttpServerProcess", daemon = True).start()
+        th.Thread(target=self.serve, args=(), name="HttpServerProcess", daemon=True).start()
 
     # デストラクタ
-    def __del__(self) :
+    def __del__(self):
         self.httpd.shutdown()
         print("Delete <HttpServer> class")
 
@@ -29,14 +31,17 @@ class HttpServer :
 # ==================================
 #       本クラスのテスト用処理
 # ==================================
-def module_test() :
+
+
+def module_test():
     # インスタンス作成
-    http_svr = HttpServer(8080, HttpReqLineHandler)
+    HttpServer(8080, HttpReqLineHandler)
 
     # ループ処理
     # TODO: wow
-    while True :
+    while True:
         time.sleep(0.1)
+
 
 # ==================================
 # 本モジュールを直接呼出した時の処理

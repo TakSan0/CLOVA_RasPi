@@ -2,10 +2,11 @@ from clova.processor.tts.base_tts import BaseTTSProvider
 import os
 import requests
 
+
 class VoiceTextTTSProvider(BaseTTSProvider):
     def __init__(self):
         self.voice_text_api_key = os.environ["VOICE_TEXT_API_KEY"]
-    
+
     def tts(self, text, **kwargs):
         print("音声合成中(VoiceText)")
 
@@ -23,7 +24,7 @@ class VoiceTextTTSProvider(BaseTTSProvider):
             response = requests.post(url, auth=auth, data=params)
 
             # HTTPエラーがあれば例外を発生させる
-            response.raise_for_status()            
+            response.raise_for_status()
 
             return response.content
 

@@ -14,7 +14,7 @@ from typing import Dict, Type
 
 from clova.processor.stt.base_stt import BaseSTTProvider
 from clova.processor.stt.google_cloud_speech import GoogleCloudSpeechSTTProvider
-from clova.processor.stt.speech_recognition_google import GoogleCloudSpeechSTTProvider
+from clova.processor.stt.speech_recognition_google import SpeechRecognitionGoogleSTTProvider
 
 from clova.processor.tts.base_tts import BaseTTSProvider
 from clova.processor.tts.google_text_to_speech import GoogleTextToSpeechTTSProvider
@@ -35,10 +35,12 @@ GOOGLE_SPEECH_SIZEOF_CHUNK = int(GOOGLE_SPEECH_RATE / 10)
 # ==================================
 #        音声取得・再生クラス
 # ==================================
-class VoiceController :
+
+
+class VoiceController:
     STT_MODULES: Dict[str, Type[BaseSTTProvider]] = {
         "GoogleCloudSpeech": GoogleCloudSpeechSTTProvider,
-        "SpeechRecognitionGoogle": GoogleCloudSpeechSTTProvider
+        "SpeechRecognitionGoogle": SpeechRecognitionGoogleSTTProvider
     }
     TTS_MODULES: Dict[str, Type[BaseTTSProvider]] = {
         "GoogleTextToSpeech": GoogleTextToSpeechTTSProvider,
@@ -48,7 +50,7 @@ class VoiceController :
     }
 
     # コンストラクタ
-    def __init__(self) :
+    def __init__(self):
         print("Create <VoiceControl> class")
 
         # 設定パラメータを読み込み
@@ -59,7 +61,8 @@ class VoiceController :
         self.terminate_silent_duration = conf["hardware"]["audio"]["microphone"]["term_duration"]
         self.speaker_num_ch = conf["hardware"]["audio"]["speaker"]["num_ch"]
         self.speaker_device_index = conf["hardware"]["audio"]["speaker"]["index"]
-        print("MiC:NumCh={}, Index={}, Threshold={}, Duration={}, SPK:NumCh={}, Index={}".format(self.mic_num_ch, self.mic_device_index,  self.silent_threshold, self.terminate_silent_duration, self.speaker_num_ch, self.speaker_device_index))#for debug
+        print("MiC:NumCh={}, Index={}, Threshold={}, Duration={}, SPK:NumCh={}, Index={}".format(self.mic_num_ch, self.mic_device_index,
+              self.silent_threshold, self.terminate_silent_duration, self.speaker_num_ch, self.speaker_device_index))  # for debug
 
         self.tts_system = global_config_prov.get_general_config()["apis"]["tts"]["system"] or global_character_prov.get_character_settings()["tts"]["system"]
         self.stt_system = global_config_prov.get_general_config()["apis"]["stt"]["system"]
@@ -73,12 +76,12 @@ class VoiceController :
         self._wav_conversion_ffmpeg_waiting = None
 
     # デストラクタ
-    def __del__(self) :
+    def __del__(self):
         # 現状ログ出すだけ
         print("Delete <VoiceControl> class")
 
     # マイクからの録音
-    def microphone_record(self) :
+    def microphone_record(self):
         # 底面 LED を赤に
         global_led_Ill.set_all(global_led_Ill.RGB_RED)
 
@@ -101,7 +104,7 @@ class VoiceController :
 
         # 無音検出用パラメータ
         silent_frames = 0  # 無音期間 フレームカウンタ
-        max_silent_frames = int( self.terminate_silent_duration * GOOGLE_SPEECH_RATE / 1000 / GOOGLE_SPEECH_SIZEOF_CHUNK)  # 最大無音フレームカウンタ
+        max_silent_frames = int(self.terminate_silent_duration * GOOGLE_SPEECH_RATE / 1000 / GOOGLE_SPEECH_SIZEOF_CHUNK)  # 最大無音フレームカウンタ
 
         # 最大最小の初期化
         maxpp_data_max = 0
@@ -136,7 +139,7 @@ class VoiceController :
                 silent_frames += 1
 
                 # 開始済みの場合で、フレームカウンタが最大に達したら、会話の切れ目と認識して終了する処理
-                if ( recording == True ) and ( silent_frames >= max_silent_frames ):
+                if (recording) and (silent_frames >= max_silent_frames):
                     print("録音終了 / Rec level;{0}～{1}".format(maxpp_data_min, maxpp_data_max))
                     # 録音停止
                     break
@@ -159,7 +162,7 @@ class VoiceController :
                 rec_frames.append(data)
 
             # 割り込み音声がある時はキャンセルして抜ける
-            if (len(global_speech_queue) != 0) :
+            if (len(global_speech_queue) != 0):
                 print("割り込み音声により録音キャンセル")
                 # rec_frames = []
                 rec_frames.append(data)
@@ -175,7 +178,7 @@ class VoiceController :
         return b"".join(rec_frames)
 
     # 音声からテキストに変換
-    def speech_to_text(self, audio) :
+    def speech_to_text(self, audio):
         # 底面 LED をオレンジに
         global_led_Ill.set_all(global_led_Ill.RGB_ORANGE)
 
@@ -184,9 +187,9 @@ class VoiceController :
 
         return self.stt.stt(audio, **self.stt_kwargs)
 
-
     # テキストから音声に変換
-    def text_to_speech(self, text) :
+
+    def text_to_speech(self, text):
         # 底面 LED を青に
         global_led_Ill.set_all(global_led_Ill.RGB_BLUE)
 
@@ -224,11 +227,11 @@ class VoiceController :
             if not data:
                 break
 
-            if play_stream is None: # openしたときからwriteするまで結構大きめのノイズがするためデータが取得できてからopenする
+            if play_stream is None:  # openしたときからwriteするまで結構大きめのノイズがするためデータが取得できてからopenする
                 play_stream = pyaud.open(format=SPEECH_FORMAT, channels=channels, rate=44100, output=True, output_device_index=self.speaker_device_index)
                 play_stream.start_stream()
 
-            data = np.frombuffer(data, dtype=np.int16) * global_vol.vol_value # ボリューム倍率を更新
+            data = np.frombuffer(data, dtype=np.int16) * global_vol.vol_value  # ボリューム倍率を更新
             data = data.astype(np.int16)
             play_stream.write(data.tobytes())
 
@@ -240,7 +243,7 @@ class VoiceController :
         print("Play done!")
 
     # 音声ファイルの再生
-    def play_audio(self, audio) :
+    def play_audio(self, audio):
         # 底面 LED を水に
         global_led_Ill.set_all(global_led_Ill.RGB_CYAN)
 
@@ -280,18 +283,20 @@ class VoiceController :
         ffmpeg_handler.join()
         pyaud.terminate()
 
-        threading.Thread(target=self._launch_ffmpeg_cache).start() # 次回から待機状態のffmpegを使用する
+        threading.Thread(target=self._launch_ffmpeg_cache).start()  # 次回から待機状態のffmpegを使用する
 
 # ==================================
 #       本クラスのテスト用処理
 # ==================================
-def module_test() :
+
+
+def module_test():
     # 現状何もしない
     pass
+
 
 # ==================================
 # 本モジュールを直接呼出した時の処理
 # ==================================
 if __name__ == "__main__":
     module_test()
-

@@ -18,7 +18,9 @@ from typing import Dict, Tuple, Type
 # ==================================
 #          会話制御クラス
 # ==================================
-class ConversationController :
+
+
+class ConversationController:
     CONVERSATION_MODULES: Dict[str, Type[BaseConversationProvider]] = {
         "OpenAI-ChatGPT": OpenAIChatGPTConversationProvider,
         "Bard": BardConversationProvider
@@ -28,22 +30,22 @@ class ConversationController :
     ]
 
     # コンストラクタ
-    def __init__(self) :
+    def __init__(self):
         print("Create <ConversationController> class")
         self.system = global_config_prov.get_general_config()["apis"]["conversation"]["system"]
         self.provider = self.CONVERSATION_MODULES[self.system]()
 
     # デストラクタ
-    def __del__(self) :
+    def __del__(self):
         # 現状ログ出すだけ
         print("Delete <ConversationController> class")
 
     # 音声以外での待ち処理
-    def check_for_interrupted_voice(self) :
+    def check_for_interrupted_voice(self):
         ret = False
         speech_text = ""
 
-        if (len(global_speech_queue) != 0 ) :
+        if (len(global_speech_queue) != 0):
             speech_text = global_speech_queue.get()
             print(speech_text)
             ret = True
@@ -51,13 +53,13 @@ class ConversationController :
         return ret, speech_text
 
     # 問いかけに答える
-    def get_answer(self, prompt) :
+    def get_answer(self, prompt):
         # 無言なら無応答
-        if (prompt == "") :
+        if (prompt == ""):
             return ""
 
         # 名前に応答
-        if ( (prompt == "ねえクローバー") or (prompt == "ねえクローバ") ) :
+        if ((prompt == "ねえクローバー") or (prompt == "ねえクローバ")):
             return "はい。何でしょう。"
 
         # スキル
@@ -82,9 +84,12 @@ class ConversationController :
 # ==================================
 #       本クラスのテスト用処理
 # ==================================
-def module_test() :
+
+
+def module_test():
     # 現状何もしない
     pass
+
 
 # ==================================
 # 本モジュールを直接呼出した時の処理
@@ -92,4 +97,3 @@ def module_test() :
 if __name__ == "__main__":
     # 直接呼び出したときは、モジュールテストを実行する。
     module_test()
-
