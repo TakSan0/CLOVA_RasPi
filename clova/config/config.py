@@ -14,7 +14,7 @@ class ConfigurationProvider :
     general_config = None
     GENERAL_CONFIG_FILENAME = "./CLOVA_RasPi.json"
     requirements_config = None
-    REQUIREMENTS_CONFIG_FILENAME = "./CLOVA_requirements.json"
+    REQUIREMENTS_CONFIG_FILENAME = "./assets/CLOVA_requirements.json"
 
     # コンストラクタ
     def __init__(self) :

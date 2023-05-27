@@ -231,7 +231,7 @@ def load_illumi_data(data_bytes, child_length, grandchild_length):
 #     return bytes(flattened)
 
 def module_test() :
-    with open('illumi_test.bin', 'rb') as file:
+    with open('./assets/illumi_test.bin', 'rb') as file:
         data_bytes = file.read()
     illumi_data = load_illumi_data(data_bytes, 22, 3)
 

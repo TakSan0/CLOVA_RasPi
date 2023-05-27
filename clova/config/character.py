@@ -91,7 +91,7 @@ class CharacterProvider :
 
     # キャラクタ設定ファイルを読み出す
     def read_character_config_file(self) :
-        with open("./CLOVA_systems.json", "r", encoding="utf-8") as cfg_file:
+        with open("./assets/CLOVA_systems.json", "r", encoding="utf-8") as cfg_file:
             file_text = cfg_file.read()
         self.systems = json.loads(file_text)
         self.character_index = list(self.systems["characters"].keys())
