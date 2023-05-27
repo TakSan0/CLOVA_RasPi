@@ -64,24 +64,21 @@
             var speakerIndex = document.getElementById('speaker_index').value;
 
             // サーバーに選択された値を送信
-            // TODO: ew XMLHttpRequest fetch better
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '/update', true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    console.log(xhr.responseText);
-                }
-            };
-            xhr.send(
-                'default_char_sel=' + selectedCharacter +
-                '&mic_channels=' + micChannels +
-                '&mic_index=' + micIndex +
-                '&silent_thresh=' + silentThreshold +
-                '&term_duration=' + terminateSilentDuration +
-                '&speaker_channels=' + speakerChannels +
-                '&speaker_index=' + speakerIndex
-            );
+            fetch('/update', {
+                method: 'POST',
+                header: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    'default_char_sel': selectedCharacter,
+                    'mic_channels': micChannels,
+                    'mic_index': micIndex,
+                    'silent_thresh': silentThreshold,
+                    'term_duration': terminateSilentDuration,
+                    'speaker_channels': speakerChannels,
+                    'speaker_index': speakerIndex
+                })
+            }).then((resp) => resp.text()).then(console.log)
         });
     </script>
 </body>
