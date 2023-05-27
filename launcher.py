@@ -32,7 +32,7 @@ def main():
     voice = VoiceController()
 
     # キー準備
-    char_switch = SwitchInput(SwitchInput.PIN_BACK_SW_BT, global_character_prov.select_next_character)
+    char_switch = SwitchInput(SwitchInput.PIN_BACK_SW_BT, lambda _: global_character_prov.select_next_character())
     plus_switch = SwitchInput(SwitchInput.PIN_BACK_SW_PLUS, global_vol.vol_up_cb)
     minus_switch = SwitchInput(SwitchInput.PIN_BACK_SW_MINUS, global_vol.vol_down_cb)
 

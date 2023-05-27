@@ -64,6 +64,19 @@ class VoiceController:
         print("MiC:NumCh={}, Index={}, Threshold={}, Duration={}, SPK:NumCh={}, Index={}".format(self.mic_num_ch, self.mic_device_index,
               self.silent_threshold, self.terminate_silent_duration, self.speaker_num_ch, self.speaker_device_index))  # for debug
 
+        global_character_prov.bind_for_update(self._update_system_conf)
+
+        self._update_system_conf()
+
+        self._wav_conversion_ffmpeg_waiting = None
+
+    # デストラクタ
+    def __del__(self):
+        # 現状ログ出すだけ
+        print("Delete <VoiceControl> class")
+
+    def _update_system_conf(self):
+        print("_update_system_conf")
         self.tts_system = global_config_prov.get_general_config()["apis"]["tts"]["system"] or global_character_prov.get_character_settings()["tts"]["system"]
         self.stt_system = global_config_prov.get_general_config()["apis"]["stt"]["system"]
 
@@ -72,13 +85,6 @@ class VoiceController:
 
         self.tts = self.TTS_MODULES[self.tts_system]()
         self.stt = self.STT_MODULES[self.stt_system]()
-
-        self._wav_conversion_ffmpeg_waiting = None
-
-    # デストラクタ
-    def __del__(self):
-        # 現状ログ出すだけ
-        print("Delete <VoiceControl> class")
 
     # マイクからの録音
     def microphone_record(self):

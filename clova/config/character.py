@@ -13,6 +13,7 @@ class CharacterProvider:
     current_character_num = -1
     character_index = []
     characters_len = 0
+    update_callbacks = []
 
     # コンストラクタ
     def __init__(self):
@@ -22,16 +23,20 @@ class CharacterProvider:
         self.read_character_config_file()
 
     # デストラクタ
-
     def __del__(self):
         # 現状ログ出すだけ
         print("Delete <CharacterProvider> class")
+
+    def bind_for_update(self, cb):
+        self.update_callbacks.append(cb)
 
     # キャラクタ設定
     def set_character(self, id):
         self.character = self.systems["characters"][id]
         self.current_character_num = self.character_index.index(id)
-        select_speech = "キャラクタ {} さんが選択されました。".format(self.character["persona"]["name"])
+        for cb in self.update_callbacks:
+            cb()
+        select_speech = "キャラクタ {}さん CV {}が選択されました。".format(self.character["persona"]["name"], id)
         print(select_speech)
         global_speech_queue.add(select_speech)
 
@@ -86,7 +91,7 @@ class CharacterProvider:
             ):
                 break
 
-        self.set_character(num)
+        self.set_character(self.character_index[num])
 
     # キャラクタ設定ファイルを読み出す
     def read_character_config_file(self):

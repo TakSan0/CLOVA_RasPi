@@ -36,7 +36,7 @@ class ConfigurationProvider:
         return self.general_config
 
     def get_requirements_config(self):
-        return self.general_config
+        return self.requirements_config
 
     # 全設定パラメータを読み取る
     def load_config_file(self):
