@@ -54,9 +54,9 @@ def main() :
         # 割り込み音声ありの時
         if ( int_exists == True) :
             if stt_result != None :
-                filename = voice.text_to_speech(stt_result)
-                if (filename != None) :
-                    voice.play_audio_file(filename)
+                audio = voice.text_to_speech(stt_result)
+                if (audio != None) :
+                    voice.play_audio(audio)
                 else :
                     print("音声ファイルを取得できませんでした。")
 

@@ -3,8 +3,6 @@ import os
 import requests
 
 class VoiceTextTTSProvider(BaseTTSProvider):
-    WAV_PLAY_FILENAME = "/tmp/clova_speech.wav"
-
     def __init__(self):
         self.voice_text_api_key = os.environ["VOICE_TEXT_API_KEY"]
     
@@ -19,7 +17,6 @@ class VoiceTextTTSProvider(BaseTTSProvider):
             "emotion": kwargs["emotion"]
         }
         auth = (self.voice_text_api_key, "")
-        ret = None
 
         try:
             # APIにリクエストを送信してデータを取得
@@ -28,11 +25,7 @@ class VoiceTextTTSProvider(BaseTTSProvider):
             # HTTPエラーがあれば例外を発生させる
             response.raise_for_status()            
 
-            # 音声をファイルに保存
-            with open(self.WAV_PLAY_FILENAME, "wb") as out:
-                out.write(response.content)
-
-            ret = self.WAV_PLAY_FILENAME
+            return response.content
 
         except requests.exceptions.RequestException as e:
             print("リクエストエラー:{}".format(e))
@@ -42,4 +35,4 @@ class VoiceTextTTSProvider(BaseTTSProvider):
 
         print("ファイル保存完了 ;{}".format(self.WAV_PLAY_FILENAME))
 
-        return ret
+        return None

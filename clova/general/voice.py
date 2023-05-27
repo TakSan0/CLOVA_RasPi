@@ -1,10 +1,9 @@
 import time
-import os
 import pyaudio
-import wave
+import threading
 import numpy as np
 import audioop
-from pydub import AudioSegment
+import ffmpeg
 from clova.io.local.led import global_led_Ill
 from clova.config.config import global_config_prov
 from clova.config.character import global_character_prov
@@ -27,8 +26,7 @@ from clova.processor.tts.ai_talk import AITalkTTSProvider
 SPEECH_FORMAT = pyaudio.paInt16
 
 # 再生設定
-WAV_PLAY_FILENAME = "/tmp/clova_speech.wav"
-WAV_PLAY_SIZEOF_CHUNK = 1024
+PCM_PLAY_SIZEOF_CHUNK = 512
 
 # 録音設定
 GOOGLE_SPEECH_RATE = 16000
@@ -71,6 +69,8 @@ class VoiceController :
 
         self.tts = self.TTS_MODULES[self.tts_system]()
         self.stt = self.STT_MODULES[self.stt_system]()
+
+        self._wav_conversion_ffmpeg_waiting = None
 
     # デストラクタ
     def __del__(self) :
@@ -192,51 +192,42 @@ class VoiceController :
 
         return self.tts.tts(text, **self.tts_kwargs)
 
-    # 音声ファイルの再生
-    # TODO: pipe stdin to prevent from damaging sd card
-    def play_audio_file(self, filename) :
-        # 底面 LED を水に
-        global_led_Ill.set_all(global_led_Ill.RGB_CYAN)
-        print("ファイル再生 :{}".format(filename))
+    def _get_wav_info(self, wav_bytes):
+        # Read the required fields from the header
+        channels = int.from_bytes(wav_bytes[22:24], 'little')
+        sample_rate = int.from_bytes(wav_bytes[24:28], 'little')
+        width = int.from_bytes(wav_bytes[34:36], 'little')
 
-        # PyAudioのオブジェクトを作成
-        pyaud = pyaudio.PyAudio()
+        return channels, sample_rate, width
 
-        # waveファイルの情報を取得
-        wav_file = wave.open(filename, "rb")
-        rate = wav_file.getframerate()
-        channels = wav_file.getnchannels()
-        width = wav_file.getsampwidth()
+    def _launch_ffmpeg_cache(self):
+        input_stream = ffmpeg.input("pipe:", format="wav")
+        output_stream = ffmpeg.output(
+            input_stream.audio,
+            "pipe:",
+            format="s16le",
+            ar=44100,
+            ac=1,
+            # loglevel='error'
+        )
 
-        if (rate == 24000) :
-            # 一旦閉じる
-            wav_file.close()
-            os.rename(filename, "/tmp/temp.wav")
+        self._wav_conversion_ffmpeg_waiting = output_stream.run_async(pipe_stdin=True, pipe_stdout=True)
+        return self._wav_conversion_ffmpeg_waiting
 
-            # サンプリングレート変換
-            rateconv_file = AudioSegment.from_wav("/tmp/temp.wav")
-            converted_wav = rateconv_file.set_frame_rate(44100)
-            converted_wav.export(filename, format="wav")
-            os.remove("/tmp/temp.wav")
-
-            # 再度フィアルを開いて waveファイルの情報を取得
-            wav_file = wave.open(filename, "rb")
-            rate = wav_file.getframerate()
-            channels = wav_file.getnchannels()
-            width = wav_file.getsampwidth()
-
-        print("PlayWav: rate={}, channels={}, width = {}".format(rate,channels, width))
-
+    def _handle_ffmpeg_output(self, pyaud, channels, stdout):
         # 再生開始
-        play_stream = pyaud.open(format=pyaud.get_format_from_width(width), channels=channels, rate=rate, output=True, output_device_index=self.speaker_device_index)
-        wav_file.rewind()
-        play_stream.start_stream()
+        play_stream = None
 
         # 再生処理
         while True:
-            data = wav_file.readframes(WAV_PLAY_SIZEOF_CHUNK)
+            data = stdout.read(PCM_PLAY_SIZEOF_CHUNK)
             if not data:
                 break
+
+            if play_stream is None: # openしたときからwriteするまで結構大きめのノイズがするためデータが取得できてからopenする
+                play_stream = pyaud.open(format=SPEECH_FORMAT, channels=channels, rate=44100, output=True, output_device_index=self.speaker_device_index)
+                play_stream.start_stream()
+
             data = np.frombuffer(data, dtype=np.int16) * global_vol.vol_value # ボリューム倍率を更新
             data = data.astype(np.int16)
             play_stream.write(data.tobytes())
@@ -246,12 +237,50 @@ class VoiceController :
         while play_stream.is_active():
             time.sleep(0.1)
         play_stream.close()
-        wav_file.close()
         print("Play done!")
 
-        # PyAudioオブジェクトを終了
+    # 音声ファイルの再生
+    def play_audio(self, audio) :
+        # 底面 LED を水に
+        global_led_Ill.set_all(global_led_Ill.RGB_CYAN)
+
+        # with open("./test.wav", "wb") as f:
+        #     f.write(audio)
+
+        channels, _, _ = self._get_wav_info(audio)
+
+        print("オーディオ再生 ({}チャンネル)".format(channels))
+
+        if channels != 1:
+            # 変換
+            input_stream = ffmpeg.input("pipe:", format="wav")
+            output_stream = ffmpeg.output(
+                input_stream.audio,
+                "pipe:",
+                format="s16le",
+                ar=44100,
+                ac=channels,
+                # loglevel='error'
+            )
+
+            ffmpeg_proc = output_stream.run_async(pipe_stdin=True, pipe_stdout=True)
+        else:
+            ffmpeg_proc = self._wav_conversion_ffmpeg_waiting or self._launch_ffmpeg_cache()
+            self._wav_conversion_ffmpeg_waiting = None
+
+        # PyAudioのオブジェクトを作成
+        pyaud = pyaudio.PyAudio()
+
+        ffmpeg_handler = threading.Thread(target=self._handle_ffmpeg_output, args=[pyaud, channels, ffmpeg_proc.stdout])
+        ffmpeg_handler.start()
+
+        ffmpeg_proc.stdin.write(audio)
+        ffmpeg_proc.stdin.close()
+
+        ffmpeg_handler.join()
         pyaud.terminate()
-        time.sleep(0.1)
+
+        threading.Thread(target=self._launch_ffmpeg_cache).start() # 次回から待機状態のffmpegを使用する
 
 # ==================================
 #       本クラスのテスト用処理

@@ -5,8 +5,6 @@ import json
 import time
 
 class VoiceVoxTTSProvider(BaseTTSProvider):
-    WAV_PLAY_FILENAME = "/tmp/clova_speech.wav"
-
     def __init__(self):
         self.web_voicevox_api_key = os.environ["WEB_VOICEVOX_API_KEY"]
         self.voicevox_custom_api_endpoint = os.environ["VOICEVOX_CUSTOM_API_ENDPOINT"]
@@ -54,11 +52,7 @@ class VoiceVoxTTSProvider(BaseTTSProvider):
                     # 少しだけ待ってリトライ
                     time.sleep(0.5)
 
-                # 音声をファイルに保存
-                with open(self.WAV_PLAY_FILENAME, "wb") as out:
-                    out.write(response.content)
-
-                ret = self.WAV_PLAY_FILENAME
+                return response.content
             else :
                 print("NOT success (VoiceVox")
 
@@ -86,10 +80,7 @@ class VoiceVoxTTSProvider(BaseTTSProvider):
             res = requests.post(self.voicevox_custom_api_endpoint + "/synthesis", params={ "speaker": kwargs["x_voice_vox_id"] }, data=phrase.content)
             res.raise_for_status()
 
-            with open(self.WAV_PLAY_FILENAME, mode="wb") as f:
-                f.write(res.content)
-
-            return self.WAV_PLAY_FILENAME
+            return res.content
         except Exception as e:
             print(e)
             return None

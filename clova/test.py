@@ -25,8 +25,6 @@ PIN_LED_R = 13
 PIN_LED_G = 12
 PIN_LED_B = 6
 
-WAV_FILENAME = "/tmp/clova_speech.wav"
-
 # ==================================
 #           テスト用クラス
 # ==================================
@@ -46,17 +44,12 @@ class TestClass :
         voice = VoiceController()
         global_speech_queue.clear()
         while(self.is_active) :
-            record_data = voice.microphone_record()
-            with wave.open(WAV_FILENAME, "wb") as out:
-                out.setnchannels(voice.mic_num_ch)
-                out.setsampwidth(2)
-                out.setframerate(16000)
-                out.writeframes(record_data)
+            audio = voice.microphone_record()
 
             time.sleep(0.5)
 
             print("再生開始")
-            voice.play_audio_file(WAV_FILENAME)
+            voice.play_audio(audio)
             print("再生終了")
 
             time.sleep(1.5)

@@ -3,8 +3,6 @@ import os
 import requests
 
 class AITalkTTSProvider(BaseTTSProvider):
-    WAV_PLAY_FILENAME = "/tmp/clova_speech.wav"
-
     def __init__(self):
         self.aitalk_user = os.environ["AITALK_USER"]
         self.aitalk_password = os.environ["AITALK_PASSWORD"]
@@ -38,7 +36,7 @@ class AITalkTTSProvider(BaseTTSProvider):
             with open(self.WAV_PLAY_FILENAME, "wb") as out:
                 out.write(response.content)
 
-            ret = self.WAV_PLAY_FILENAME
+            return response.content
 
         except requests.exceptions.RequestException as e:
             print("リクエストエラー:{}".format(e))
@@ -46,6 +44,4 @@ class AITalkTTSProvider(BaseTTSProvider):
         except IOError as e:
             print("ファイルの保存エラー:{}".format(e))
 
-        print("ファイル保存完了 ;{}".format(self.WAV_PLAY_FILENAME))
-
-        return ret
+        return None

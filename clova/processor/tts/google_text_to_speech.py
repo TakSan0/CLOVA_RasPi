@@ -4,7 +4,6 @@ from google.cloud import texttospeech as tts
 
 class GoogleTextToSpeechTTSProvider(BaseTTSProvider):
     GOOGLE_SPEECH_RATE = 16000
-    WAV_PLAY_FILENAME = "/tmp/clova_speech.wav"
 
     GENDER_MAP = {
         "MALE": tts.SsmlVoiceGender.MALE,
@@ -43,11 +42,5 @@ class GoogleTextToSpeechTTSProvider(BaseTTSProvider):
         response = self._client_tts.synthesize_speech(
             input=synthesis_input, voice=voice_config, audio_config=audio_config
         )
-
-        # 音声をファイルに保存
-        with open(self.WAV_PLAY_FILENAME, "wb") as out:
-            # Write the response to the output file.
-            out.write(response.audio_content)
-            print("ファイル保存完了 ;{}".format(self.WAV_PLAY_FILENAME))
         
-        return self.WAV_PLAY_FILENAME
+        return response.audio_content
