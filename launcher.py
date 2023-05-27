@@ -1,4 +1,3 @@
-from clova.config.config import global_config_prov
 # from CLOVA_config import HttpReqSettingHandler
 from clova.io.local.led import global_led_Ill
 from clova.processor.skill.timer import TimerSkillProvider
@@ -9,6 +8,7 @@ from clova.general.conversation import ConversationController
 from clova.general.voice import VoiceController
 from clova.io.http.http_server import HttpServer
 from clova.processor.skill.line import LineSkillProvider, HttpReqLineHandler
+from clova.general.queue import global_speech_queue
 
 def main() :
     # 会話モジュールのインスタンス作成
@@ -53,7 +53,7 @@ def main() :
 
         # 割り込み音声無の時
         else :
-            answered_text = ""
+            answer_result = ""
 
             # 録音
             record_data = voice.microphone_record()
@@ -69,24 +69,21 @@ def main() :
 
             # 終了ワードチェック
             if (stt_result == "終了") or (stt_result == "終了。") :
-                answered_text = "わかりました。終了します。さようなら。"
+                answer_result = "わかりました。終了します。さようなら。"
                 is_exit = True
 
             else :
                 # 会話モジュールから、問いかけに対する応答を取得
-                answered_text =  conv.get_answer(stt_result)
+                answer_result =  conv.get_answer(stt_result)
                 is_exit = False
 
             # 応答が空でなかったら再生する。
-            if ( ( answered_text != None) and (answered_text != "" ) ) :
-                print("応答メッセージ:{}".format(answered_text) )
+            if ( ( answer_result != None) and (answer_result != "" ) ) :
+                print("応答メッセージ:{}".format(answer_result) )
 
-                answered_text_list = answered_text.split("\n")
-                for text_to_speech in answered_text_list :
-                    if text_to_speech != "" :
-                        filename = voice.text_2_speech(text_to_speech)
-                        if (len(filename) != 0) :
-                            voice.play_audio_file(filename)
+                answered_text_list = answer_result.split("\n")
+                for line in answered_text_list :
+                    global_speech_queue.add(line)
 
             # 終了ワードでループから抜ける
             if (is_exit == True ) :

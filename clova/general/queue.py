@@ -1,9 +1,12 @@
 from collections import deque
+import regex as re
 
 # ==================================
 #          発話キュークラス
 # ==================================
 class SpeechQueue :
+    REGEX_ASSUME_EMPTY = re.compile("^[\p{P}|\p{S}|\p{Z}|\n]*$")
+
     # コンストラクタ
     def __init__(self) :
         print("Create <SpeechQueue> class")
@@ -17,6 +20,10 @@ class SpeechQueue :
 
     # 文字列をキューに格納する
     def add(self, string):
+        if string.strip() == "" or self.REGEX_ASSUME_EMPTY.match(string) is not None:
+            print("SpeechQueue却下: \'{}\'".format(string))
+            return
+        print("SpeechQueue += \'{}\'".format(string))
         self._queue.append(string)
 
     # キューから文字列を取得する
