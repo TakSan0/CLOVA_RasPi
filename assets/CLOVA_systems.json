@@ -282,7 +282,7 @@
 					"speed": "1",
 					"emotion": "",
 
-					"x_voice_vox_id": -1
+					"x_voice_vox_id": 12
 				}
 			},
 			"persona": {
@@ -306,7 +306,7 @@
 					"speed": "1",
 					"emotion": "",
 
-					"x_voice_vox_id": -1
+					"x_voice_vox_id": 16
 				}
 			},
 			"persona": {
