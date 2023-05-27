@@ -22,7 +22,7 @@ PIN_ILL_LED_ENA = 24
 # ==================================
 
 
-class GPIOControl:
+class GPIOController:
     # コンストラクタ
     def __init__(self):
         print("Create <GPIOControl> class")

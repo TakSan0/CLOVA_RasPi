@@ -5,7 +5,7 @@ from clova.general.queue import global_speech_queue
 # ==================================
 
 
-class VolumeControl:
+class VolumeController:
     vol_value = 1.0
     _vol_step = 7
     VOL_MIN_STEP = 0
@@ -49,7 +49,7 @@ class VolumeControl:
 # ==================================
 #      外部参照用のインスタンス
 # ==================================
-global_vol = VolumeControl()
+global_vol = VolumeController()
 
 # ==================================
 #       本クラスのテスト用処理
