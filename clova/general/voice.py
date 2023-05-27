@@ -175,7 +175,7 @@ class VoiceController :
         return b"".join(rec_frames)
 
     # 音声からテキストに変換
-    def speech_2_text(self, audio) :
+    def speech_to_text(self, audio) :
         # 底面 LED をオレンジに
         global_led_Ill.set_all(global_led_Ill.RGB_ORANGE)
 
@@ -183,7 +183,7 @@ class VoiceController :
 
 
     # テキストから音声に変換
-    def text_2_speech(self, text) :
+    def text_to_speech(self, text) :
         # 底面 LED を青に
         global_led_Ill.set_all(global_led_Ill.RGB_BLUE)
 

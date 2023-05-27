@@ -45,7 +45,7 @@ def main() :
         # 割り込み音声ありの時
         if ( int_exists == True) :
             if stt_result != "" :
-                filename = voice.text_2_speech(stt_result)
+                filename = voice.text_to_speech(stt_result)
                 if (filename != "") :
                     voice.play_audio_file(filename)
                 else :
@@ -59,7 +59,7 @@ def main() :
             record_data = voice.microphone_record()
 
             # テキストに返還
-            stt_result = voice.speech_2_text(record_data)
+            stt_result = voice.speech_to_text(record_data)
 
             if stt_result is None:
                 print("発話なし")
