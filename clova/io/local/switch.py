@@ -2,13 +2,14 @@ try:
     import RPi.GPIO as GPIO
 except BaseException:
     from fake_rpi.RPi import GPIO
+from clova.general.logger import BaseLogger
 
 # ==================================
 #           キー入力クラス
 # ==================================
 
 
-class SwitchInput:
+class SwitchInput(BaseLogger):
     # PIN_FRONT_SW = 26
     # PIN_FRONT_SW = 4	# 起動に使うので、これはサポート対象外とする
     PIN_BACK_SW_MINUS = 2
@@ -22,22 +23,26 @@ class SwitchInput:
 
     # コンストラクタ
     def __init__(self, pin, cb_func):
-        print("Create <SwitchInput> class / Pin={}".format(pin))
+        super().__init__()
+
+        self.log("CTOR", "Pin={}".format(pin))
 
         self._pin = pin
-        print("GPIO.setup({}, {}, {})".format(self._pin, GPIO.IN, GPIO.PUD_UP))
+        self.log("CTOR", "GPIO.setup({}, {}, {})".format(self._pin, GPIO.IN, GPIO.PUD_UP))
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self._pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.add_event_detect(self._pin, GPIO.FALLING, callback=cb_func, bouncetime=200)
 
     # デストラクタ
     def __del__(self):
-        print("Delete <SwitchInput> class / Pin={}".format(self._pin))
+        super().__del__()
+
+        self.log("DTOR", "Pin={}".format(self._pin))
         self.release()
 
     # 解放処理
     def release(self):
-        print("Relase key({})".format(self._pin))
+        self.log("release", "Relase key({})".format(self._pin))
         GPIO.remove_event_detect(self._pin)
         GPIO.cleanup(self._pin)
 

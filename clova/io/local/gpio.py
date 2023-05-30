@@ -2,6 +2,7 @@ try:
     import RPi.GPIO as GPIO
 except BaseException:
     from fake_rpi.RPi import GPIO
+from clova.general.logger import BaseLogger
 
 PIN_FRONT_SW = 4
 PIN_BACK_SW_MINUS = 2
@@ -22,17 +23,16 @@ PIN_ILL_LED_ENA = 24
 # ==================================
 
 
-class GPIOController:
+class GPIOController(BaseLogger):
     # コンストラクタ
     def __init__(self):
-        print("Create <GPIOControl> class")
+        super().__init__()
 
         self.init()
 
     # デストラクタ
     def __del__(self):
-        # 現状ログ出すだけ
-        print("Delete <GPIOControl> class")
+        super().__del__()
 
     # 初期化処理
     def init():

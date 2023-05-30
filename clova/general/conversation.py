@@ -9,6 +9,8 @@ from clova.processor.skill.weather import WeatherSkillProvider
 from clova.processor.skill.line import LineSkillProvider
 from clova.processor.skill.datetime import DateTimeSkillProvider
 
+from clova.general.logger import BaseLogger
+
 from clova.general.queue import global_speech_queue
 from clova.config.config import global_config_prov
 from clova.io.local.led import global_led_Ill
@@ -20,7 +22,7 @@ from typing import Dict, Tuple, Type
 # ==================================
 
 
-class ConversationController:
+class ConversationController(BaseLogger):
     CONVERSATION_MODULES: Dict[str, Type[BaseConversationProvider]] = {
         "OpenAI-ChatGPT": OpenAIChatGPTConversationProvider,
         "Bard": BardConversationProvider
@@ -31,14 +33,14 @@ class ConversationController:
 
     # コンストラクタ
     def __init__(self):
-        print("Create <ConversationController> class")
+        super().__init__()
+
         self.system = global_config_prov.get_general_config()["apis"]["conversation"]["system"]
         self.provider = self.CONVERSATION_MODULES[self.system]()
 
     # デストラクタ
     def __del__(self):
-        # 現状ログ出すだけ
-        print("Delete <ConversationController> class")
+        super().__del__()
 
     # 音声以外での待ち処理
     def check_for_interrupted_voice(self):

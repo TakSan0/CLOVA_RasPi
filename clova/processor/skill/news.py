@@ -4,6 +4,8 @@ import time
 from bs4 import BeautifulSoup
 
 from clova.processor.skill.base_skill import BaseSkillProvider
+from clova.general.logger import BaseLogger
+from clova.config.config import global_config_prov
 
 CATEGORY_URL_TABLE = {
     "トップ": "https://news.yahoo.co.jp/",
@@ -26,16 +28,16 @@ NEWS_URL_STRING = "https://news.yahoo.co.jp/"
 # ==================================
 
 
-class NewsSkillProvider(BaseSkillProvider):
+class NewsSkillProvider(BaseSkillProvider, BaseLogger):
     # コンストラクタ
     def __init__(self):
-        print("Create <NewsReader> class")
+        super().__init__()
+
         self._news_count = 0
 
     # デストラクタ
     def __del__(self):
-        # 現状ログ出すだけ
-        print("Delete <NewsReader> class")
+        super().__del__()
 
     # ニュース 質問に答える。ニュースの問い合わせではなければ None を返す
     def try_get_answer(self, request_text):
@@ -46,7 +48,7 @@ class NewsSkillProvider(BaseSkillProvider):
                 category = match.group(1)
                 if category in CATEGORY_URL_TABLE:
                     url = CATEGORY_URL_TABLE[category]
-                    print("Getting {} News!!".format(category))
+                    self.log("try_get_answer", "Getting {} News!!".format(category))
                     response = requests.get(url)
                     soup = BeautifulSoup(response.content, "html.parser")
 
@@ -62,7 +64,7 @@ class NewsSkillProvider(BaseSkillProvider):
                         # link = element.attrs["href"]
                         news_headlines += "{}. {}".format(str(num), news_text) + "\n"
                         num += 1
-                    print(news_headlines)
+                    self.log("try_get_answer", news_headlines)
                     self._news_count = num - 1
                     self._news_list = news_list
                     news_headlines += "詳細を知りたい番号を1から{}で選んでください。\n".format(str(self._news_count))
@@ -70,12 +72,12 @@ class NewsSkillProvider(BaseSkillProvider):
                     return news_headlines
                 else:
                     answer_text = "ニュースのカテゴリーを認識できませんでした。"
-                    print("No Category for NEWS")
+                    self.log("try_get_answer", "No Category for NEWS")
                     self._news_count = 0
                     return None
             else:
                 # 該当がない場合は空で返信
-                print("No Keyword for NEWS")
+                self.log("try_get_answer", "No Keyword for NEWS")
                 self._news_count = 0
                 return None
         # 前回がニュースであれば番号を選択する
@@ -92,26 +94,27 @@ class NewsSkillProvider(BaseSkillProvider):
                     # 選択された番号から URL を取得する
                     selected_news = self._news_list[selected_num - 1]
                     news_url = selected_news["href"]
-                    print("URL={}".format(news_url))
+                    self.log("try_get_answer", "URL={}".format(news_url))
 
                     # URL からデータを取得して、さらにその記事全文の URL を取得する
                     response = requests.get(news_url)
                     soup = BeautifulSoup(response.content, "html.parser")
                     sub_soup = soup.select("a:contains('記事全文を読む')")[0]
                     sub_link = sub_soup.attrs["href"]
-                    print("Sub URL={}".format(sub_link))
+                    self.log("try_get_answer", "Sub URL={}".format(sub_link))
 
                     # URL から記事本文を取得する。
                     detail_body = requests.get(sub_link)
                     detail_soup = BeautifulSoup(detail_body.text, "html.parser")
 
                     # 記事本文のタイトルを表示する
-                    print("Detail title = {}".format(detail_soup.title.text))
+                    self.log("try_get_answer", "Detail title = {}".format(detail_soup.title.text))
 
                     # class属性の中に「Direct」が含まれる行を抽出する
                     news_detail = detail_soup.find(class_=re.compile("Direct")).text
 
-                    # print("Detail text ={}".format(news_detail))
+                    if global_config_prov.verbose():
+                        self.log("try_get_answer", "Detail text ={}".format(news_detail))
 
                     return news_detail
                 else:

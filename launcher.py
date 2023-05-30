@@ -9,12 +9,15 @@ from clova.general.voice import VoiceController
 from clova.io.http.http_server import HttpServer
 from clova.processor.skill.line import LineSkillProvider, HttpReqLineHandler
 from clova.general.queue import global_speech_queue
+from clova.general.logger import Logger
 
 import platform
 import time
 
 
 def main():
+    logger = Logger("LAUNCHER")
+
     # 会話モジュールのインスタンス作成
     conv = ConversationController()
 
@@ -44,7 +47,7 @@ def main():
     system = platform.system()
     is_debug_session = False
     if system == "Windows" or system == "Darwin":
-        print("\033[93mplatform.system()がWindowsまたはDarwinを返しました。プログラムはデバッグセッションであることを想定し、メインループで実際にマイクを起動しません。\033[0m")
+        logger.log("main", "\033[93mplatform.system()がWindowsまたはDarwinを返しました。プログラムはデバッグセッションであることを想定し、メインループで実際にマイクを起動しません。\033[0m")
         is_debug_session = True
 
     # メインループ
@@ -59,7 +62,7 @@ def main():
                 if (audio is not None):
                     voice.play_audio(audio)
                 else:
-                    print("音声ファイルを取得できませんでした。")
+                    logger.log("main", "音声ファイルを取得できませんでした。")
 
         # 割り込み音声無の時
         else:
@@ -76,10 +79,10 @@ def main():
             stt_result = voice.speech_to_text(record_data)
 
             if stt_result is None:
-                print("発話なし")
+                logger.log("main", "発話なし")
                 continue
 
-            print("発話メッセージ:{}".format(stt_result))
+            logger.log("main", "発話メッセージ:{}".format(stt_result))
 
             # 終了ワードチェック
             if (stt_result == "終了") or (stt_result == "終了。"):
@@ -93,7 +96,7 @@ def main():
 
             # 応答が空でなかったら再生する。
             if ((answer_result is not None) and (answer_result != "")):
-                print("応答メッセージ:{}".format(answer_result))
+                logger.log("main", "応答メッセージ:{}".format(answer_result))
 
                 answered_text_list = answer_result.split("\n")
                 for line in answered_text_list:
@@ -102,7 +105,7 @@ def main():
             # 終了ワードでループから抜ける
             if (is_exit):
                 tmr.stop()
-                print("Exit!!!")
+                logger.log("main", "Exit!!!")
                 break
 
     # 底面 LED をオフに

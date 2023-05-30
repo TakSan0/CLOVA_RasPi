@@ -1,15 +1,21 @@
 from clova.processor.tts.base_tts import BaseTTSProvider
 import os
 import requests
+from clova.general.logger import BaseLogger
 
 
-class AITalkTTSProvider(BaseTTSProvider):
+class AITalkTTSProvider(BaseTTSProvider, BaseLogger):
     def __init__(self):
+        super().__init__()
+
         self.aitalk_user = os.environ["AITALK_USER"]
         self.aitalk_password = os.environ["AITALK_PASSWORD"]
 
+    def __del__(self):
+        super().__del__()
+
     def tts(self, text, **kwargs):
-        print("音声合成中(AITalk)")
+        self.log("tts", "音声合成中(AITalk)")
 
         # 音声合成設定
         url = "https://webapi.aitalk.jp/webapi/v5/ttsget.php"
@@ -27,7 +33,7 @@ class AITalkTTSProvider(BaseTTSProvider):
             # APIにリクエストを送信してデータを取得
             response = requests.get(url, data=params)
 
-            print("URL:{} params:{}".format(url, params))
+            self.log("tts", "URL:{} params:{}".format(url, params))
 
             # HTTPエラーがあれば例外を発生させる
             response.raise_for_status()
@@ -35,9 +41,9 @@ class AITalkTTSProvider(BaseTTSProvider):
             return response.content
 
         except requests.exceptions.RequestException as e:
-            print("リクエストエラー:{}".format(e))
+            self.log("tts", "リクエストエラー:{}".format(e))
 
         except IOError as e:
-            print("ファイルの保存エラー:{}".format(e))
+            self.log("tts", "ファイルの保存エラー:{}".format(e))
 
         return None

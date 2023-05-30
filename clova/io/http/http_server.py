@@ -1,24 +1,25 @@
 import socketserver
 import threading as th
 from clova.processor.skill.line import HttpReqLineHandler
+from clova.general.logger import BaseLogger
 
 # ==================================
 #       HTTPサーバークラス
 # ==================================
 
 
-class HttpServer:
+class HttpServer(BaseLogger):
     # コンストラクタ
     def __init__(self, port, handler):
         self._port = port
         self._handler = handler
-        print("Create <HttpServer> class")
         th.Thread(target=self.serve, args=(), name="HttpServerProcess", daemon=True).start()
 
     # デストラクタ
     def __del__(self):
+        super().__del__()
+
         self.httpd.shutdown()
-        print("Delete <HttpServer> class")
 
     # HTTPサーバーのメイン処理：起動したあとは、MyHandler で待ち受けているだけ
     def serve(self):

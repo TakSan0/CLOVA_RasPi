@@ -1,11 +1,12 @@
 from clova.general.queue import global_speech_queue
+from clova.general.logger import BaseLogger
 
 # ==================================
 #       ボリューム制御クラス
 # ==================================
 
 
-class VolumeController:
+class VolumeController(BaseLogger):
     vol_value = 1.0
     _vol_step = 7
     VOL_MIN_STEP = 0
@@ -16,23 +17,22 @@ class VolumeController:
 
     # コンストラクタ
     def __init__(self):
-        print("Create <VolumeControl> class")
+        super().__init__()
 
         self._vol_step = 7
 
     # デストラクタ
     def __del__(self):
-        # 現状ログ出すだけ
-        print("Delete <VolumeControl> class")
+        super().__del__()
 
     # ボリューム [+] 押下時処理
     def vol_up_cb(self, arg):
         if (self._vol_step < self.VOL_MAX_STEP):
             self._vol_step += 1
             self.vol_value = self.VOL_TABLE[self._vol_step]
-            print("Vol + [={}({})]".format(self._vol_step, self.vol_value))
+            self.log("vol_up_cb", "Vol + [={}({})]".format(self._vol_step, self.vol_value))
             vol_speech = "ボリュームを {} に設定しました。".format(str(self._vol_step))
-            print(vol_speech)
+            self.log("vol_up_cb", vol_speech)
             global_speech_queue.add(vol_speech)
 
     # ボリューム [-] 押下時処理
@@ -40,9 +40,9 @@ class VolumeController:
         if (self._vol_step > self.VOL_MIN_STEP):
             self._vol_step -= 1
             self.vol_value = self.VOL_TABLE[self._vol_step]
-            print("Vol - [={}({})]".format(self._vol_step, self.vol_value))
+            self.log("vol_down_cb", "Vol - [={}({})]".format(self._vol_step, self.vol_value))
             vol_speech = "ボリュームを {} に設定しました。".format(str(self._vol_step))
-            print(vol_speech)
+            self.log("vol_down_cb", vol_speech)
             global_speech_queue.add(vol_speech)
 
 

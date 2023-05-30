@@ -1,14 +1,20 @@
 from clova.processor.tts.base_tts import BaseTTSProvider
 import os
 import requests
+from clova.general.logger import BaseLogger
 
 
-class VoiceTextTTSProvider(BaseTTSProvider):
+class VoiceTextTTSProvider(BaseTTSProvider, BaseLogger):
     def __init__(self):
+        super().__init__()
+
         self.voice_text_api_key = os.environ["VOICE_TEXT_API_KEY"]
 
+    def __del__(self):
+        super().__del__()
+
     def tts(self, text, **kwargs):
-        print("音声合成中(VoiceText)")
+        self.log("tts", "音声合成中(VoiceText)")
 
         # 音声合成設定
         url = "https://api.voicetext.jp/v1/tts"
@@ -29,9 +35,9 @@ class VoiceTextTTSProvider(BaseTTSProvider):
             return response.content
 
         except requests.exceptions.RequestException as e:
-            print("リクエストエラー:{}".format(e))
+            self.log("tts", "リクエストエラー:{}".format(e))
 
         except IOError as e:
-            print("ファイルの保存エラー:{}".format(e))
+            self.log("tts", "ファイルの保存エラー:{}".format(e))
 
         return None

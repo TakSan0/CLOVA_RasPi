@@ -1,31 +1,31 @@
 from collections import deque
 import regex as re
+from clova.general.logger import BaseLogger
 
 # ==================================
 #          発話キュークラス
 # ==================================
 
 
-class SpeechQueue:
+class SpeechQueue(BaseLogger):
     REGEX_ASSUME_EMPTY = re.compile("^[\\p{P}|\\p{S}|\\p{Z}|\n]*$")
 
     # コンストラクタ
     def __init__(self):
-        print("Create <SpeechQueue> class")
+        super().__init__()
 
         self._queue = deque()
 
     # デストラクタ
     def __del__(self):
-        # 現状ログ出すだけ
-        print("Delete <SpeechQueue> class")
+        super().__del__()
 
     # 文字列をキューに格納する
     def add(self, string):
         if string.strip() == "" or self.REGEX_ASSUME_EMPTY.match(string) is not None:
-            print("SpeechQueue却下: \'{}\'".format(string))
+            self.log("add", "SpeechQueue却下: \'{}\'".format(string))
             return
-        print("SpeechQueue += \'{}\'".format(string))
+        self.log("add", "SpeechQueue += \'{}\'".format(string))
         self._queue.append(string)
 
     # キューから文字列を取得する

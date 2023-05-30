@@ -1,6 +1,7 @@
 import json
 from clova.general.queue import global_speech_queue
 from clova.config.config import global_config_prov
+from clova.general.logger import BaseLogger
 from typing import Tuple
 
 # ==================================
@@ -8,7 +9,7 @@ from typing import Tuple
 # ==================================
 
 
-class CharacterProvider:
+class CharacterProvider(BaseLogger):
     character = None
     current_character_num = -1
     character_index = []
@@ -17,15 +18,14 @@ class CharacterProvider:
 
     # コンストラクタ
     def __init__(self):
-        print("Create <CharacterProvider> class")
+        super().__init__()
 
         # キャラクタ設定ファイルの読み込み
         self.read_character_config_file()
 
     # デストラクタ
     def __del__(self):
-        # 現状ログ出すだけ
-        print("Delete <CharacterProvider> class")
+        super().__del__()
 
     def bind_for_update(self, cb):
         self.update_callbacks.append(cb)
@@ -37,7 +37,7 @@ class CharacterProvider:
         for cb in self.update_callbacks:
             cb()
         select_speech = "キャラクタ {}さん CV {}が選択されました。".format(self.character["persona"]["name"], id)
-        print(select_speech)
+        self.log("set_character", select_speech)
         global_speech_queue.add(select_speech)
 
     def get_character_settings(self):
@@ -68,7 +68,7 @@ class CharacterProvider:
         if (self.character["persona"]["detail"] != ""):
             description += "あなたは {}\n".format(self.character["persona"]["detail"])
 
-        print("character Description={}".format(description))
+        self.log("get_character_prompt", "character Description={}".format(description))
         return description
 
     # キャラクタに必要なクレデンシャル名を取得
@@ -113,7 +113,6 @@ global_character_prov = CharacterProvider()
 
 
 def module_test():
-    # 現状何もしない
     print("characters_len = {}".format(str(global_character_prov.systems["characters"].keys())))
 
 

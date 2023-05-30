@@ -2,25 +2,27 @@ import os
 import openai
 from clova.config.character import global_character_prov
 from clova.processor.conversation.base_conversation import BaseConversationProvider
+from clova.general.logger import BaseLogger
+from clova.config.config import global_config_prov
 
 # ==================================
 #         OpenAI APIクラス
 # ==================================
 
 
-class OpenAIChatGPTConversationProvider(BaseConversationProvider):
+class OpenAIChatGPTConversationProvider(BaseConversationProvider, BaseLogger):
     OPENAI_CHARACTER_CONFIG = "あなたはサービス終了で使えなくなったクローバの後を次ぎました。"
 
     # コンストラクタ
     def __init__(self):
+        super().__init__()
+
         self.OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
         self.set_persona("")
-        print("Create <OpenAIChatGPTConversationProvider> class")
 
     # デストラクタ
     def __del__(self):
-        # 現状ログ出すだけ
-        print("Delete <OpenAIChatGPTConversationProvider> class")
+        super().__del__()
 
     def set_persona(self, prompt):
         self._char_setting_str = self.OPENAI_CHARACTER_CONFIG + prompt
@@ -28,7 +30,7 @@ class OpenAIChatGPTConversationProvider(BaseConversationProvider):
     def get_answer(self, prompt, **kwargs):
         openai.api_key = self.OPENAI_API_KEY
 
-        print("OpenAI 応答作成中")
+        self.log("get_answer", "OpenAI 応答作成中")
         desc = global_character_prov.get_character_prompt()
 
         if (self.OPENAI_API_KEY != ""):
@@ -41,14 +43,18 @@ class OpenAIChatGPTConversationProvider(BaseConversationProvider):
                         {"role": "user", "content": prompt},
                     ]
                 )
-                # print(ai_response["choices"][0]["message"]["content"]) #返信のみを出力
-                print(ai_response)
+                if global_config_prov.verbose():
+                    self.log("get_answer", ai_response["choices"][0]["message"]["content"])  # 返信のみを出力
 
-                # print(len(ai_response))
+                self.log("get_answer", ai_response)
+
+                if global_config_prov.verbose():
+                    self.log("get_answer", len(ai_response))
+
                 if (len(ai_response) != 0):
                     result = ai_response["choices"][0]["message"]["content"]
                 else:
-                    print("AIからの応答が空でした。")
+                    self.log("get_answer", "AIからの応答が空でした。")
                     result = None
 
             except openai.error.RateLimitError:
@@ -60,13 +66,13 @@ class OpenAIChatGPTConversationProvider(BaseConversationProvider):
             except openai.error.ServiceUnavailableError:
                 result = "OpenAIエラー：Open AI サービス無効エラーです。"
             except openai.error.OpenAIError as e:
-                result = "OpenAIエラー：Open AI APIエラーが発生しました： {}".format(e)
+                result = "OpenAIエラー：Open AI APIエラーが発生しました：{}".format(e)
             except Exception as e:
-                result = "不明なエラーが発生しました： {}".format(e)
+                result = "不明なエラーが発生しました：{}".format(e)
         else:
             result = "Open AI APIキーが設定されていないため利用できません。先に APIキーを取得して設定してください。"
 
-        print(result)
+        self.log("get_answer", result)
         return result
 
 # ==================================

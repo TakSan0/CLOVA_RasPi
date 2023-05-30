@@ -5,6 +5,7 @@ try:
 except BaseException:
     from fake_rpi.RPi import GPIO
     from fake_rpi import smbus
+from clova.general.logger import BaseLogger
 
 PIN_FRONT_SW = 4
 PIN_BACK_SW_MINUS = 2
@@ -25,20 +26,20 @@ PIN_ILL_LED_ENA = 24
 # ==================================
 
 
-class IndicatorLed:
+class IndicatorLed(BaseLogger):
     LED_OFF = False
     LED_ON = True
 
     # コンストラクタ
     def __init__(self):
-        print("Create <IndicatorLed> class")
+        super().__init__()
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(PIN_IND_LED_G, GPIO.OUT)
 
     # デストラクタ
     def __del__(self):
-        print("Delete <IndicatorLed class")
+        super().__del__()
 
         GPIO.cleanup(PIN_IND_LED_G)
 
@@ -51,7 +52,7 @@ class IndicatorLed:
 # ==================================
 
 
-class IllminationLed:
+class IllminationLed(BaseLogger):
     I2C_SEL_CH = 0
     SLAVE_ADDR = 0x50
     REG_ADDRESS_TABLE = [
@@ -84,19 +85,20 @@ class IllminationLed:
 
     # コンストラクタ
     def __init__(self):
+        super().__init__()
+
         self.is_available = False
-        print("Create <IllminationLed> class")
         self.init()
 
     # デストラクタ
     def __del__(self):
-        print("Delete <IllminationLed> class")
+        super().__del__()
 
         try:
             self.set_all(global_led_Ill.RGB_RED)
             self.finalize()
         except Exception:
-            print("Delete <IllminationLed> fail; seems to be already finalized?")
+            self.log("DTOR", "デストラクト <IllminationLed> 失敗; もうすでにデストラクタ呼ばれた？")
 
     # 初期化処理
     def init(self):
@@ -107,16 +109,16 @@ class IllminationLed:
             self._i2c = smbus.SMBus(self.I2C_SEL_CH)
             self._i2c.write_byte_data(self.SLAVE_ADDR, 0x00, 0x01)
 
-            print("LED control device found at addr:{}".format(self.I2C_SEL_CH))
+            self.log("init", "LED control device found at addr: {}".format(self.I2C_SEL_CH))
         except IOError:
             self.is_available = False
-            print("IOError : LED control device not found!")
+            self.log("init", "IOError: LED control device not found!")
 
         except Exception as e:
             self.is_available = False
-            print("Error : LED control device : {}".format(str(e)))
+            self.log("init", "Error: LED control device: {}".format(str(e)))
 
-        print("Ill LED Initialized")
+        self.log("init", "Ill LED Initialized")
 
         # Initialize GPIO
         GPIO.setup(PIN_ILL_LED_POW, GPIO.OUT)
@@ -171,7 +173,7 @@ class IllminationLed:
             self._i2c.write_byte_data(self.SLAVE_ADDR, 0xFE, 0xC5)
             self._i2c.write_byte_data(self.SLAVE_ADDR, 0xFD, 0x01)
         else:
-            print("LED Device unavailable!")
+            self.log("send_command_header", "LED Device unavailable!")
 
     # ビット指定でRGB食を指定設定
     def set_leds_with_bit_mask(self, bits, rgb_color):
@@ -186,7 +188,7 @@ class IllminationLed:
                         self._i2c.write_byte_data(self.SLAVE_ADDR, self.REG_ADDRESS_TABLE[num][rgb], self.RGB_OFF[rgb])
             time.sleep(0.05)
         else:
-            print("LED Device unavailable!")
+            self.log("set_leds_with_bit_mask", "LED Device unavailable!")
 
     # 配列指定ですべての LED を設定する
     def set_all_led_with_array(self, rgb_data):
@@ -196,7 +198,7 @@ class IllminationLed:
                 for rgb in range(len(rgb_data[num])):
                     self._i2c.write_byte_data(self.SLAVE_ADDR, self.REG_ADDRESS_TABLE[num][rgb], rgb_data[num][rgb])
         else:
-            print("LED Device unavailable!")
+            self.log("set_all_led_with_array", "LED Device unavailable!")
 
     def set_all(self, rgb):
         self.set_leds_with_bit_mask(self.ALL_BITS, rgb)
@@ -205,7 +207,7 @@ class IllminationLed:
     def finalize(self):
         GPIO.cleanup(PIN_ILL_LED_POW)
         GPIO.cleanup(PIN_ILL_LED_ENA)
-        print("Finalize")
+        self.log("finalize", "Finalize")
 
 
 # ==================================

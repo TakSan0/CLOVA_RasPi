@@ -4,13 +4,16 @@ import threading
 import numpy as np
 import audioop
 import ffmpeg
+
+from typing import Dict, Type
+
 from clova.io.local.led import global_led_Ill
 from clova.config.config import global_config_prov
 from clova.config.character import global_character_prov
 from clova.io.local.volume import global_vol
 from clova.general.queue import global_speech_queue
 
-from typing import Dict, Type
+from clova.general.logger import BaseLogger
 
 from clova.processor.stt.base_stt import BaseSTTProvider
 from clova.processor.stt.google_cloud_speech import GoogleCloudSpeechSTTProvider
@@ -37,7 +40,7 @@ GOOGLE_SPEECH_SIZEOF_CHUNK = int(GOOGLE_SPEECH_RATE / 10)
 # ==================================
 
 
-class VoiceController:
+class VoiceController(BaseLogger):
     STT_MODULES: Dict[str, Type[BaseSTTProvider]] = {
         "GoogleCloudSpeech": GoogleCloudSpeechSTTProvider,
         "SpeechRecognitionGoogle": SpeechRecognitionGoogleSTTProvider
@@ -51,7 +54,7 @@ class VoiceController:
 
     # コンストラクタ
     def __init__(self):
-        print("Create <VoiceControl> class")
+        super().__init__()
 
         # 設定パラメータを読み込み
         conf = global_config_prov.get_general_config()
@@ -61,8 +64,8 @@ class VoiceController:
         self.terminate_silent_duration = conf["hardware"]["audio"]["microphone"]["term_duration"]
         self.speaker_num_ch = conf["hardware"]["audio"]["speaker"]["num_ch"]
         self.speaker_device_index = conf["hardware"]["audio"]["speaker"]["index"]
-        print("MiC:NumCh={}, Index={}, Threshold={}, Duration={}, SPK:NumCh={}, Index={}".format(self.mic_num_ch, self.mic_device_index,
-              self.silent_threshold, self.terminate_silent_duration, self.speaker_num_ch, self.speaker_device_index))  # for debug
+        self.log("CTOR", "MiC:NumCh={}, Index={}, Threshold={}, Duration={}, SPK:NumCh={}, Index={}".format(self.mic_num_ch, self.mic_device_index,
+                 self.silent_threshold, self.terminate_silent_duration, self.speaker_num_ch, self.speaker_device_index))  # for debug
 
         global_character_prov.bind_for_update(self._update_system_conf)
 
@@ -72,11 +75,10 @@ class VoiceController:
 
     # デストラクタ
     def __del__(self):
-        # 現状ログ出すだけ
-        print("Delete <VoiceControl> class")
+        super().__del__()
 
     def _update_system_conf(self):
-        print("_update_system_conf")
+        self.log("_update_system_conf", "called")
         self.tts_system = global_config_prov.get_general_config()["apis"]["tts"]["system"] or global_character_prov.get_character_settings()["tts"]["system"]
         self.stt_system = global_config_prov.get_general_config()["apis"]["stt"]["system"]
 
@@ -95,7 +97,7 @@ class VoiceController:
         pyaud = pyaudio.PyAudio()
 
         # 録音開始
-        print("聞き取り中：")
+        self.log("microphone_record", "聞き取り中：")
 
         # 底面 LED を暗緑に
         global_led_Ill.set_all(global_led_Ill.RGB_DARKGREEN)
@@ -146,7 +148,7 @@ class VoiceController:
 
                 # 開始済みの場合で、フレームカウンタが最大に達したら、会話の切れ目と認識して終了する処理
                 if (recording) and (silent_frames >= max_silent_frames):
-                    print("録音終了 / Rec level;{0}～{1}".format(maxpp_data_min, maxpp_data_max))
+                    self.log("microphone_record", "録音終了 / Rec level: {0}～{1}".format(maxpp_data_min, maxpp_data_max))
                     # 録音停止
                     break
 
@@ -161,7 +163,7 @@ class VoiceController:
                     global_led_Ill.set_all(global_led_Ill.RGB_GREEN)
 
                     # 録音開始
-                    print("録音開始")
+                    self.log("microphone_record", "録音開始")
                     recording = True
 
                 # 録音中のフレームを取得
@@ -169,7 +171,7 @@ class VoiceController:
 
             # 割り込み音声がある時はキャンセルして抜ける
             if (len(global_speech_queue) != 0):
-                print("割り込み音声により録音キャンセル")
+                self.log("microphone_record", "割り込み音声により録音キャンセル")
                 # rec_frames = []
                 rec_frames.append(data)
                 break
@@ -246,7 +248,7 @@ class VoiceController:
         while play_stream.is_active():
             time.sleep(0.1)
         play_stream.close()
-        print("Play done!")
+        self.log("_handle_ffmpeg_output", "Play done!")
 
     # 音声ファイルの再生
     def play_audio(self, audio):
@@ -258,7 +260,7 @@ class VoiceController:
 
         channels, _, _ = self._get_wav_info(audio)
 
-        print("オーディオ再生 ({}チャンネル)".format(channels))
+        self.log("play_audio", "オーディオ再生 ({}チャンネル)".format(channels))
 
         if channels != 1:
             # 変換

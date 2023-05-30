@@ -11,6 +11,7 @@ from clova.general.queue import global_speech_queue
 from clova.config.config import global_config_prov
 
 from clova.processor.skill.base_skill import BaseSkillProvider
+from clova.general.logger import BaseLogger
 
 speech_queue = None
 # ==================================
@@ -18,34 +19,34 @@ speech_queue = None
 # ==================================
 
 
-class LineReceiver:
+class LineReceiver(BaseLogger):
     # コンストラクタ
     def __init__(self):
-        # 現状ログ出すだけ
-        print("Create <LineReciever> class")
+        super().__init__()
+
+        pass
 
     # デストラクタ
     def __del__(self):
-        # 現状ログ出すだけ
-        print("Delete <LineReciever> class")
+        super().__del__()
 
     def conv_id_to_call_name(self, id):
         # 未サポート（やり方調査中）
-        print("ID:{} の名前を取得できませんでした。".format(self.json_data["events"][0]["message"]["id"]))
+        self.log("conv_id_to_call_name", "ID:{} の名前を取得できませんでした。".format(self.json_data["events"][0]["message"]["id"]))
         return "誰か"
 
     # 受信時処理
     def on_message_recv(self, body, query_data):
         # 取得データを展開
-        print("POST body=")
-        print(body)
-        print("POST query_data=")
-        print(query_data)
+        self.log("on_message_recv", "POST body=")
+        self.log("on_message_recv", body)
+        self.log("on_message_recv", "POST query_data=")
+        self.log("on_message_recv", query_data)
 
         # ボディー部分の JSonを取り出す
         self.json_data = json.loads(body)
-        print("Json=")
-        print(self.json_data)
+        self.log("on_message_recv", "Json=")
+        self.log("on_message_recv", self.json_data)
 
         # IDをハンドル名に変換
         sender = self.conv_id_to_call_name(self.json_data["events"][0]["message"]["id"])
@@ -53,40 +54,42 @@ class LineReceiver:
         # ライン受信をまず通知
         sender_read = "{} さんから次のラインメッセージが届きました。".format(sender)
         global_speech_queue.add(sender_read)
-        print("From>'{}'".format(sender_read))
+        self.log("on_message_recv", "From>'{}'".format(sender_read))
 
         # メッセージを取得
         line_str = self.json_data["events"][0]["message"]["text"]
-        print("LINE Message=")
-        print(line_str)
+        self.log("on_message_recv", "LINE Message=")
+        self.log("on_message_recv", line_str)
 
         # メッセージ読み上げ
         message_list = line_str.splitlines()
-        # print ("LINE message=")
+
+        if global_config_prov.verbose():
+            self.log("on_message_recv", "LINE message=")
+
         for message in message_list:
             global_speech_queue.add(message)
-            print("Send>'{}'".format(message))
+            self.log("on_message_recv", "Send>'{}'".format(message))
 
 # ==================================
 #           LINE送信クラス
 # ==================================
 
 
-class LineSkillProvider(BaseSkillProvider):
+class LineSkillProvider(BaseSkillProvider, BaseLogger):
     POST_URL = "https://api.line.me/v2/bot/message/push"
     request_header = {"Content-Type": "application/json", "Authorization": "Bearer channel_access_token"}
     request_body = {"to": "user ID", "messages": [{"type": "text", "text": "Message to send"}]}
 
     # コンストラクタ
     def __init__(self):
-        # 現状ログ出すだけ
-        print("Create <LineSender> class")
+        super().__init__()
+
         self.ACCESS_TOKEN = os.environ["LINE_CH_ACC_TOKEN"]
 
     # デストラクタ
     def __del__(self):
-        # 現状ログ出すだけ
-        print("Delete <LineSender> class")
+        super().__del__()
 
     # メッセージ送信
     def send_message(self, to_id, message):
@@ -95,10 +98,11 @@ class LineSkillProvider(BaseSkillProvider):
         self.request_body["messages"][0]["text"] = message
         self.request_header["Authorization"] = "Bearer {}".format(self.ACCESS_TOKEN)
 
-        # print("HEADER:")
-        # print(self.request_header)
-        # print("BODY:")
-        # print(self.request_body)
+        if global_config_prov.verbose():
+            self.log("send_message", "HEADER:")
+            self.log("send_message", self.request_header)
+            self.log("send_message", "BODY:")
+            self.log("send_message", self.request_body)
 
         # メッセージの送信
         requests.post(self.POST_URL, headers=self.request_header, json=self.request_body)
@@ -114,7 +118,7 @@ class LineSkillProvider(BaseSkillProvider):
                 found_id = id_inf["id"]
 
         if (found_id == ""):
-            print("呼び名:{} のIDを取得できませんでした。デフォルトのIDを使用します。")
+            self.log("conv_call_name_to_id", "呼び名:{} のIDを取得できませんでした。デフォルトのIDを使用します。")
             found_id = default_id
 
         return found_id
@@ -133,12 +137,12 @@ class LineSkillProvider(BaseSkillProvider):
                 # マッチした場合、name_str と Message 変数に格納
                 name_str = match.group("name_str")
                 message = match.group("message")
-                print("name_str: {}".format(name_str))
-                print("Message: {}".format(message))
+                self.log("try_get_answer", "name_str: {}".format(name_str))
+                self.log("try_get_answer", "Message: {}".format(message))
 
                 # メッセージ送信
                 id = self.conv_call_name_to_id(name_str)
-                print("Send[LINE]>Id:{},Msg:{}".format(id, message))
+                self.log("try_get_answer", "Send[LINE]>Id:{},Msg:{}".format(id, message))
                 self.send_message(id, message)
 
                 answer_text = "{} に {} とラインメッセージ送りました".format(name_str, message)
@@ -147,12 +151,12 @@ class LineSkillProvider(BaseSkillProvider):
             else:
                 # 該当がない場合は空で返信
                 answer_text = "メッセージを解釈できませんでした。"
-                print(answer_text)
+                self.log("try_get_answer", answer_text)
                 return answer_text
 
         else:
             # 該当がない場合は空で返信
-            print("No keyword for skill Line")
+            self.log("try_get_answer", "No keyword for skill Line")
             return None
 
 
