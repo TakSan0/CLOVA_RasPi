@@ -3,9 +3,11 @@ import requests
 import time
 from bs4 import BeautifulSoup
 
-from clova.processor.skill.base_skill import BaseSkillProvider
-from clova.general.logger import BaseLogger
 from clova.config.config import global_config_prov
+
+from clova.processor.skill.base_skill import BaseSkillProvider
+
+from clova.general.logger import BaseLogger
 
 CATEGORY_URL_TABLE = {
     "トップ": "https://news.yahoo.co.jp/",

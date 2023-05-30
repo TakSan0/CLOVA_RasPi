@@ -1,4 +1,5 @@
 from clova.general.queue import global_speech_queue
+
 from clova.general.logger import BaseLogger
 
 # ==================================

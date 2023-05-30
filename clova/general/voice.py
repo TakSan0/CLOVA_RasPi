@@ -13,8 +13,6 @@ from clova.config.character import global_character_prov
 from clova.io.local.volume import global_vol
 from clova.general.queue import global_speech_queue
 
-from clova.general.logger import BaseLogger
-
 from clova.processor.stt.base_stt import BaseSTTProvider
 from clova.processor.stt.google_cloud_speech import GoogleCloudSpeechSTTProvider
 from clova.processor.stt.speech_recognition_google import SpeechRecognitionGoogleSTTProvider
@@ -24,6 +22,8 @@ from clova.processor.tts.google_text_to_speech import GoogleTextToSpeechTTSProvi
 from clova.processor.tts.voice_text import VoiceTextTTSProvider
 from clova.processor.tts.voice_vox import VoiceVoxTTSProvider
 from clova.processor.tts.ai_talk import AITalkTTSProvider
+
+from clova.general.logger import BaseLogger
 
 # 音声ファイル設定
 SPEECH_FORMAT = pyaudio.paInt16

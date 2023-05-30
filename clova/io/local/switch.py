@@ -2,6 +2,7 @@ try:
     import RPi.GPIO as GPIO
 except BaseException:
     from fake_rpi.RPi import GPIO
+
 from clova.general.logger import BaseLogger
 
 # ==================================

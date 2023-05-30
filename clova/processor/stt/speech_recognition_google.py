@@ -1,5 +1,7 @@
 import speech_recognition
+
 from clova.processor.stt.base_stt import BaseSTTProvider
+
 from clova.general.logger import BaseLogger
 
 GOOGLE_SPEECH_RATE = 16000

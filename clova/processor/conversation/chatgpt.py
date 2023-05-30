@@ -1,9 +1,12 @@
 import os
 import openai
+
 from clova.config.character import global_character_prov
-from clova.processor.conversation.base_conversation import BaseConversationProvider
-from clova.general.logger import BaseLogger
 from clova.config.config import global_config_prov
+
+from clova.processor.conversation.base_conversation import BaseConversationProvider
+
+from clova.general.logger import BaseLogger
 
 # ==================================
 #         OpenAI APIクラス

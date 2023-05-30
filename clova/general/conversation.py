@@ -1,3 +1,5 @@
+from typing import Dict, Tuple, Type
+
 from clova.processor.conversation.base_conversation import BaseConversationProvider
 from clova.processor.conversation.chatgpt import OpenAIChatGPTConversationProvider
 from clova.processor.conversation.bard import BardConversationProvider
@@ -9,13 +11,11 @@ from clova.processor.skill.weather import WeatherSkillProvider
 from clova.processor.skill.line import LineSkillProvider
 from clova.processor.skill.datetime import DateTimeSkillProvider
 
-from clova.general.logger import BaseLogger
-
 from clova.general.queue import global_speech_queue
 from clova.config.config import global_config_prov
 from clova.io.local.led import global_led_Ill
 
-from typing import Dict, Tuple, Type
+from clova.general.logger import BaseLogger
 
 # ==================================
 #          会話制御クラス

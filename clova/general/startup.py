@@ -1,10 +1,12 @@
 import os
 import time
 import subprocess
+
 try:
     import RPi.GPIO as GPIO
 except BaseException:
     from fake_rpi.RPi import GPIO
+
 from clova.io.local.led import IndicatorLed as ind_led
 
 # スイッチが接続されているGPIO番号

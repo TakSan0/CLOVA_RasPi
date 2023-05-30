@@ -1,14 +1,18 @@
-from clova.config.config import HttpReqSettingHandler
-from clova.io.local.led import global_led_Ill
-from clova.processor.skill.timer import TimerSkillProvider
-from clova.io.local.switch import SwitchInput
-from clova.io.local.volume import global_vol
-from clova.config.character import global_character_prov
 from clova.general.conversation import ConversationController
 from clova.general.voice import VoiceController
-from clova.io.http.http_server import HttpServer
-from clova.processor.skill.line import LineSkillProvider, HttpReqLineHandler
+
+from clova.io.local.led import global_led_Ill
+from clova.io.local.volume import global_vol
+from clova.config.character import global_character_prov
 from clova.general.queue import global_speech_queue
+
+from clova.processor.skill.line import LineSkillProvider, HttpReqLineHandler
+from clova.processor.skill.timer import TimerSkillProvider
+
+from clova.io.http.http_server import HttpServer
+from clova.config.config import HttpReqSettingHandler
+from clova.io.local.switch import SwitchInput
+
 from clova.general.logger import Logger
 
 import platform

@@ -6,6 +6,7 @@ import re
 from clova.general.queue import global_speech_queue
 
 from clova.processor.skill.base_skill import BaseSkillProvider
+
 from clova.general.logger import BaseLogger
 
 # ==================================

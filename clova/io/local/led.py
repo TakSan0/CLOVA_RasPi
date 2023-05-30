@@ -1,10 +1,12 @@
 import time
+
 try:
     import RPi.GPIO as GPIO
     import smbus
 except BaseException:
     from fake_rpi.RPi import GPIO
     from fake_rpi import smbus
+
 from clova.general.logger import BaseLogger
 
 PIN_FRONT_SW = 4

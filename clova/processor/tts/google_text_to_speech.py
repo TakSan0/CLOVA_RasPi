@@ -1,5 +1,7 @@
-from clova.processor.tts.base_tts import BaseTTSProvider
 from google.cloud import texttospeech as tts
+
+from clova.processor.tts.base_tts import BaseTTSProvider
+
 from clova.general.logger import BaseLogger
 
 

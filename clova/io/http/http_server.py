@@ -1,6 +1,8 @@
 import socketserver
 import threading as th
+
 from clova.processor.skill.line import HttpReqLineHandler
+
 from clova.general.logger import BaseLogger
 
 # ==================================
@@ -26,7 +28,7 @@ class HttpServer(BaseLogger):
         # 8080 番ポートで受け付ける
         self.httpd = socketserver.TCPServer(("", self._port), self._handler)
         self.httpd.serve_forever()
-        print("End server")
+        self.log("serve", "End server")
 
 # ==================================
 #       本クラスのテスト用処理

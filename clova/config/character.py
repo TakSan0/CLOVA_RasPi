@@ -1,8 +1,11 @@
 import json
+
+from typing import Tuple
+
 from clova.general.queue import global_speech_queue
 from clova.config.config import global_config_prov
+
 from clova.general.logger import BaseLogger
-from typing import Tuple
 
 # ==================================
 #       キャラクタ管理クラス

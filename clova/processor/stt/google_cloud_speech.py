@@ -1,7 +1,10 @@
 from google.cloud import speech_v1p1beta1 as speech
-from clova.processor.stt.base_stt import BaseSTTProvider
-from clova.general.logger import BaseLogger
+
 from clova.config.config import global_config_prov
+
+from clova.processor.stt.base_stt import BaseSTTProvider
+
+from clova.general.logger import BaseLogger
 
 
 class GoogleCloudSpeechSTTProvider(BaseSTTProvider, BaseLogger):
