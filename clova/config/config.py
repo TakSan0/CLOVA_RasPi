@@ -75,7 +75,7 @@ class ConfigurationProvider(BaseLogger):
                 return False  # グループ内の要件がいずれも満たされていない場合はFalseを返します
         return True
 
-    def verbose():
+    def verbose(self):
         return "CLOVA_DEBUG" in os.environ and os.environ["CLOVA_DEBUG"] == "1"
 
 # TODO: add support for changing apis
