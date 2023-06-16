@@ -1,4 +1,4 @@
-# CLOVA HUT for RasPi-Zero
+# CLOVA HAT for RasPi-Zero
 
 ## はじめに
 本ソフトウェアは **「ラズパイ化CLOVA」** の制御ソフトウェアです。
@@ -9,6 +9,8 @@
 
 この改造により、メインのコンピュータが置き換えられたため、制御ソフトウェアの入れ替えも必要になります。本制御ソフトウェアは、それに対応したものです。
 ラズパイ ZeroW / Zero2W 上で動作し、Python言語で開発されています。
+
+検証済みのPythonのバージョンは`3.7.3`です。
 
 LINE CLOVAを愛用していたけれども、使えなくてがっかりしている方は、ぜひ一度試してみてください。
 
@@ -62,30 +64,30 @@ LINE CLOVAを愛用していたけれども、使えなくてがっかりして�
 
 #### 1. ソフトウェアのダウンロード(クローン)
 
-以下のコマンドを使用してGitHubからソフトウェアをクローンします。
+以下のコマンドを使用してGitHubからソフトウェアをクローンしインストールします。
 
-`cd ~/;git clone https://github.com/TakSan0/CLOVA_RasPi`
+`cd ~/ && git clone https://github.com/TakSan0/CLOVA_RasPi && cd CLOVA_RasPi && pip install -r requirements.txt`
 
-#### 2. 設定ファイルのコピー
-
-以下のコマンドを使用して、GitHubからクローンした設定関連のファイルをホームディレクトリにコピーします。
-`cp ~/CLOVA_RasPi/.CLOVA_RasPi.* ~/`
-
-#### 3. キー設定ファイルの編集
+#### 2. キー設定ファイルの編集
 
 キー設定ファイルを編集します。このファイルは、個人で取得した各APIを使用するための暗号化されたキーを含んでいます。他人に漏洩してしまうと、無断利用による高額な課金のリスクがありますので、取り扱いには注意が必要です。
 
 以下のコマンドを使用して、GitHubからクローンしてコピーしたキー設定ファイルを編集します。
 
-`nano ~/.CLOVA_RasPi.keys`
+1. サンプルキーファイルを移動します
+    `mv .env-sample .env`
+2. 編集
+    `nano .env`
 
 上記のコマンドを実行すると、キー設定ファイルがエディタで開かれます。ファイル内部は次のような形式になっていると思います。各項目の=の右側に、自分用のキーを追加してください。なお、=の右側にはタブやスペースなどの余計な文字を入れないでください。
 
-```Text:CLOVA_RasPi.keys
+```Text:.env
 GOOGLE_APPLICATION_CREDENTIALS=
 OPENAI_API_KEY=
+BARD_PSID=
 VOICE_TEXT_API_KEY=
 WEB_VOICEVOX_API_KEY=
+VOICEVOX_CUSTOM_API_ENDPOINT=
 AITALK_USER=
 AITALK_PASSWORD=
 LINE_CH_ACC_TOKEN=
@@ -93,20 +95,36 @@ LINE_CH_ACC_TOKEN=
 
 以下の表に示すように、各項目の説明に従って自分用のキーを入力してください。キーは1文字でも間違えると正常に動作しないため、注意して入力してください。キーは暗号化された英数字の羅列であり、手動で入力するとミスが発生する可能性が高いため、コピー＆ペーストが推奨されます。
 
-|キー名|概要|用途|
-|:---|:---|:---|
-|GOOGLE_APPLICATION_CREDENTIALS|Googleクラウドのサービスアカウントキーのファイルパス|音声認識(STT)/音声合成(TTS)に使用します。<必須>|
-|OPENAI_API_KEY|OpenAIのAPIキー|AIによる応答を作る為にChat-GPTのAPIにアクセスするのに使用します。 <必須>|
-|VOICE_TEXT_API_KEY|Web版VoiceTextのキー|音声合成(TTS) 設定しているとより多くのキャラクタ（声色）を選択できます。<オプション>|
-|WEB_VOICEVOX_API_KEY=|WEB版VOICEVOX APIのAPIキー|音声合成(TTS) 設定しているとより多くのキャラクタ（声色）を選択できます。<オプション>|
-|AITALK_USER=|AITalk Iのユーザー名|音声合成(TTS) 設定しているとより多くのキャラクタ（声色）を選択できます。<オプション>|
-|AITALK_PASSWORD=|AITalk Iのユーザー名|音声合成(TTS) 設定しているとより多くのキャラクタ（声色）を選択できます。<オプション>|
-|LINE_CH_ACC_TOKEN|LINEチャンネルアクセストークン|LINE MessagingAPIを使って LINEメッセージ送信をする時に使用します。<オプション>|
+システム一覧
+|キー名|キー概要|概要|サービス|システム名|
+|:---|:---|:---|:---|:---|
+|GOOGLE_APPLICATION_CREDENTIALS|Googleクラウドのサービスアカウントキーのファイルパス|音声認識(STT)/音声合成(TTS)に使用します。|TTS, STT|GoogleCloudSpeech, GoogleTextToSpeech|
+|なし||SpeechRecognitionライブラリを使用した音声認識(STT)です。|STT|SpeechRecognitionGoogle|
+|OPENAI_API_KEY|OpenAIのAPIキー|AIによる応答を作る為にChat-GPTのAPIにアクセスするのに使用します。|CONVERSATION|OpenAI-ChatGPT|
+|BARD_PSID|BardのPSID (クッキー)|AIによる応答を作る為にBardへの内部APIにアクセスするのに使用します。|CONVERSATION|Bard|
+|VOICE_TEXT_API_KEY|Web版VoiceTextのキー|音声合成(TTS) 設定しているとより多くのキャラクタ（声色）を選択できます。|TTS|VoiceText|
+|WEB_VOICEVOX_API_KEY / VOICEVOX_CUSTOM_API_ENDPOINT|<font color="yellow">どちらかのみ必要。</font>WEB版VOICEVOX APIのAPIキー|音声合成(TTS) 設定しているとより多くのキャラクタ（声色）を選択できます。|TTS|VoiceVox|
+|AITALK_USER / AITALK_PASSWORD|<font color="yellow">両方必要。</font> AITalk Iのユーザー名とパスワード|音声合成(TTS) 設定しているとより多くのキャラクタ（声色）を選択できます。|TTS|AITalk|
+|LINE_CH_ACC_TOKEN|LINEチャンネルアクセストークン|LINE MessagingAPIを使って LINEメッセージ送信をする時に使用します。|SKILL|(スキル)|
 
-<オプション>の項目を設定しない場合は空白にしてください。（その機能が動作しなくなります。）
+使用しないAPIについては、キーを入力する必要はありません。
+
+JSON形式のマッピングは、`assets/CLOVA_requirements.json`で確認できます。
 
 キー設定ファイルの編集が完了したら、[Ctrl] + [o] の後 [Enter] で書き込み、[Ctrl] + [x] でエディタを抜けます。（nanoエディタの使い方は、必要な方はググってください。）
 
+### 3. 使用するAPIの設定
+設定ファイルを開きます。 
+
+`nano CLOVA_RasPi.json` 
+
+`"stt"`、 `"conversation"`に付随する、`"system"`に使用するAPIシステム名を入力します。
+<font color="yellow">`"tts"`にはnull以外設定しないでください。</font>
+
+システム名は2で示したリストに含まれます。
+`SpeechRecognitionGoogle`等、一部キーが必要ないシステムもあります。
+
+実は、`BARD_PSID`、`VOICEVOX_CUSTOM_API_ENDPOINT`(これはVoiceVox Engineが実行しているURLです)を指定し、キャラクタを`VoiceVox`を使用しているものに、STTを`SpeechRecognitionGoogle`、CONVERSATIONを`Bard`に設定することで、完全無料で実行できてしまいます。 (VoiceVox Engineを常時稼働させるコンピューターが必要ですが。)
 
 #### 4. pyaudio の入出力設定
 
@@ -174,7 +192,7 @@ CLOVA Raspberry Piを起動するには、現在は自動起動がうまく機�
 
 以下のコマンドを入力して起動します。
 
-`python ~/CLOVA_RasPi/CLOVA_RasPi.py` 
+`python launcher.py` 
 
 正常に起動すると、「キャラクターXXさんが選択されました」という音声とともに、底面のLEDが暗緑色に点灯します。もし起動しない場合は、底面のLEDが赤色になるか消灯しているかを確認してください。一般的には設定の問題が原因と考えられますので、表示されているログに従って対処してください。
 （トラブルシューティングガイドとして詳細な対処方法をまとめる予定です。）
@@ -260,7 +278,7 @@ LINE DEVELOPERサイトに、LINE Messaging APIを使うためのチャンネル
 - 底面イルミネーションLEDをもっと派手に光らせたい。アニメーション等。
 - ボリューム変更時にLEDを光らせる。
 - ボリューム変更時連続して行うと、その分の発話がたまってしまう。
-- Bard対応 (APIが公開されたら)
+- 内部APIじゃないBard対応 (まだ公開されていない)
 - Open AI Wisper にも対応したい。
 - OpenAI の会話は、過去数個分のやり取りを覚えるようにしたい
 - 外部機器のリモコン制御。(外にリモコン信号送信デバイスを設け、bluetooth経由でデータを送るようにしてみたい。M5-Echoとか使えるか？) 

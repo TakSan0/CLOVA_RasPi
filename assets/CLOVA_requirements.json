@@ -1,0 +1,47 @@
+{
+    "stt": {
+        "GoogleCloudSpeech": {
+            "requires": [
+                ["GOOGLE_APPLICATION_CREDENTIALS"]
+            ]
+        },
+        "SpeechRecognitionGoogle": {
+            "requires": []
+        }
+    },
+    "tts": {
+        "GoogleTextToSpeech": {
+            "requires": [
+                ["GOOGLE_APPLICATION_CREDENTIALS"]
+            ]
+        },
+        "VoiceText": {
+            "requires": [
+                ["VOICE_TEXT_API_KEY"]
+            ]
+        },
+        "VoiceVox": {
+            "requires": [
+                ["WEB_VOICEVOX_API_KEY", "VOICEVOX_CUSTOM_API_ENDPOINT"]
+            ]
+        },
+        "AITalk": {
+            "requires": [
+                ["AITALK_USER"],
+                ["AITALK_PASSWORD"]
+            ]
+        }
+    },
+    "conversation": {
+        "OpenAI-ChatGPT": {
+            "requires": [
+                ["OPENAI_API_KEY"]
+            ]
+        },
+        "Bard": {
+            "requires": [
+                ["BARD_PSID"]
+            ]
+        }
+    }
+}

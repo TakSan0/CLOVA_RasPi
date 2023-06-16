@@ -1,0 +1,12 @@
+pyaudio
+SpeechRecognition
+openai
+google-api-python-client
+google-cloud-speech==2.19.0
+google-cloud-texttospeech==2.14.1
+grpcio
+python-voicetext
+ffmpeg-python
+python-dotenv
+bardapi
+regex

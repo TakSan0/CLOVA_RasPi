@@ -1,0 +1,51 @@
+{
+	"character": "ずんだもん",
+	"apis": {
+		"tts": {
+			"system": null,
+			"params": null
+		},
+		"stt": {
+			"system": "SpeechRecognitionGoogle",
+			"params": {
+				"language": "ja-JP"
+			}
+		},
+		"conversation": {
+			"system": "Bard",
+			"params": {}
+		},
+		"__conversation_example_chatgpt": {
+			"system": "OpenAI-ChatGPT",
+			"params": {
+				"model": "gpt-3.5-turbo"
+			}
+		}
+	},
+	"persona_override": null,
+	"hardware": {
+		"audio": {
+			"microphone": {
+				"num_ch": 1,
+				"index": 11,
+				"silent_thresh": 300,
+				"term_duration": 3000
+			},
+			"speaker": {
+				"num_ch": 1,
+				"index": 11
+			}
+		}
+	},
+	"sns": {
+		"line": {
+			"user_id": [
+				{
+					"name": "default",
+					"call_name": "クローバ",
+					"id": ""
+				}
+			]
+		}
+	}
+}
